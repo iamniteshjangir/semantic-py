@@ -1,0 +1,52 @@
+[tool.poetry]
+name = "pysemantic"
+version = "0.1.0"
+description = "Open-source semantic layer for Databricks & Postgres"
+authors = ["Nitesh Jangir <nitesh08j@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [
+    { include = "pysemantic", from = "src" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pytest = "^9.0.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest-cov = "^4.0.0"
+coverage = "^7.11.3"
+pytest = "^9.0.1"
+ruff = "^0.14.5"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "F",  # pyflakes
+    "W",  # pycodestyle warnings
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "N",  # pep8-naming
+    "UP", # pyupgrade
+    "RUF"
+]
+ignore = ["E203", "E266"]
+fixable = ["ALL"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["pysemantic"]
+
+[tool.ruff.format]
+docstring-code-format = true
+quote-style = "double"
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
