@@ -87,3 +87,5 @@ VALID_MEASURE_AGGS = ["sum", "avg", "mean", "count", "count_distinct", "min", "m
 
 # Valid data types for dimensions
 VALID_DIMENSION_DTYPES = ["string", "int", "float", "boolean", "date", "datetime"]
+
+GRAIN_KEYWORDS = ["hourly", "daily", "monthly", "yearly"]
