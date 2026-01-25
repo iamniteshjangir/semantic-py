@@ -20,6 +20,7 @@ class RegistryValidation:
         4. Two identical models pointing to the same tables with same model definitions are not allowed.
         5. Two models using same table name but for different grains (hourly, daily, monthly, yearly) not allowed.
         6. Two PRIMARY entities with same name across two models with same table are not allowed. for eg. Same entity name "customer" defined as PRIMARY in two models not allowed
+        7. Same metric name not allowed in multiple models
     """
 
     def __init__(self, models: dict[str, Model], entities: dict[str, Entity], dimensions: dict[str, Dimension], measures: dict[str, Measure]) -> None:
@@ -286,6 +287,21 @@ class RegistryValidation:
                             entity_name=entity_name,
                             models=model_names,
                         )
+
+    def _validate_no_duplicate_metrics_across_models(self) -> None:
+        """Rule 7: Same metric name not allowed in multiple models"""
+        visited = set()
+        for model in  self.models.values():
+            for measure in model.measures:
+                if measure.name in visited:
+                    raise RegistryError(
+                        format_error(
+                            "registry.registry",
+                            "Same metric name not allowed in multiple models",
+                            metric=measure.name,
+                        )
+                    )
+                visited.add(measure.name)
     
     def validate(self) -> None:
         self._validate_no_duplicate_model_names()
@@ -294,3 +310,4 @@ class RegistryValidation:
         self._validate_no_identical_models()
         self._validate_no_same_table_different_grains()
         self._validate_no_duplicate_primary_entities_same_table()
+        self._validate_no_duplicate_metrics_across_models()

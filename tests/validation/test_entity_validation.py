@@ -27,7 +27,7 @@ def _entity(name: str, entity_type: EntityType, column: str | None = None) -> En
 def _model_with(**overrides) -> Model:
     params = {
         "name": overrides.pop("name", "test"),
-        "table": overrides.pop("table", "table"),
+        "table": overrides.pop("table", "test_table"),
         "primary_key": overrides.pop("primary_key", "id"),
     }
     params.update(overrides)
