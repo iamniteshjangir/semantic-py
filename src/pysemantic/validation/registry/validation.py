@@ -140,7 +140,7 @@ class RegistryValidation:
             if node in path:
                 # Found cycle, extract the cycle portion
                 cycle_start = path.index(node)
-                cycle = path[cycle_start:] + [node]
+                cycle = [*path[cycle_start:], node]
                 return True, cycle
             if node in visited:
                 return False, []
