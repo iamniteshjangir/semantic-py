@@ -118,10 +118,7 @@ class DimensionValidation:
         if not self._is_valid_identifier(dimension.name):
             # Check if it's a reserved word to provide better error message
             if dimension.name in ALL_RESERVED_WORDS:
-                message = (
-                    "Dimension name cannot be a reserved word or SQL keyword. "
-                    f"Invalid name: '{dimension.name}'"
-                )
+                message = f"Dimension name cannot be a reserved word or SQL keyword. Invalid name: '{dimension.name}'"
                 raise DimensionValidationError(
                     message,
                     model=self.model.name,
@@ -158,10 +155,7 @@ class DimensionValidation:
 
         if duplicates:
             unique_duplicates = list(set(duplicates))
-            message = (
-                "A Model cannot define duplicate dimension names. "
-                f"Duplicate names: {unique_duplicates}"
-            )
+            message = f"A Model cannot define duplicate dimension names. Duplicate names: {unique_duplicates}"
             raise NamingCollisionError(
                 message,
                 model=self.model.name,

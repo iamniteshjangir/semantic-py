@@ -26,8 +26,4 @@ class Entity:
         self.column = column
 
     def __repr__(self) -> str:
-        return (
-            f"Entity(name='{self.name}', "
-            f"entity_type={self.entity_type.value!r}, "
-            f"column='{self.column}')"
-        )
+        return f"Entity(name='{self.name}', entity_type={self.entity_type.value!r}, column='{self.column}')"

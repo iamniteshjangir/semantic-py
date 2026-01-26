@@ -249,9 +249,7 @@ class MeasureValidation:
             MeasureValidationError: If derived measure references invalid names
         """
         # Get all valid reference names (dimensions, measures, entities)
-        valid_names = (
-            self._get_dimension_names() | self._get_measure_names() | self._get_entity_names()
-        )
+        valid_names = self._get_dimension_names() | self._get_measure_names() | self._get_entity_names()
 
         # Check if measure column references a valid name (for derived measures)
         # This is a simplified check - full derived measure parsing would be more complex
@@ -283,10 +281,7 @@ class MeasureValidation:
 
         if duplicates:
             unique_duplicates = list(set(duplicates))
-            message = (
-                "A Model cannot define duplicate measure names. "
-                f"Duplicate names: {unique_duplicates}"
-            )
+            message = f"A Model cannot define duplicate measure names. Duplicate names: {unique_duplicates}"
             raise NamingCollisionError(
                 message,
                 model=self.model.name,

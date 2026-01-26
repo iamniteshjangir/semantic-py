@@ -58,11 +58,7 @@ class ModuleLoader:
 
     def _discover_python_files(self) -> list[Path]:
         """Return all Python files under the source path, excluding __init__.py."""
-        python_files = [
-            file_path
-            for file_path in self.source_path.rglob("*.py")
-            if file_path.name != "__init__.py"
-        ]
+        python_files = [file_path for file_path in self.source_path.rglob("*.py") if file_path.name != "__init__.py"]
         return sorted(python_files)
 
     def _import_module(self, file_path: Path) -> ModuleType:
@@ -117,4 +113,3 @@ class ModuleLoader:
                     self.dimensions[f"{attr.name}.{dimension.name}"] = dimension
                 for measure in attr.measures or []:
                     self.measures[f"{attr.name}.{measure.name}"] = measure
-

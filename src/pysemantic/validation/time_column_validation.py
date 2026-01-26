@@ -112,10 +112,7 @@ class TimeColumnValidation:
         if not self._is_valid_identifier(time_column):
             # Check if it's a reserved word to provide better error message
             if time_column in ALL_RESERVED_WORDS:
-                message = (
-                    "Time column name cannot be a reserved word or SQL keyword. "
-                    f"Invalid name: '{time_column}'"
-                )
+                message = f"Time column name cannot be a reserved word or SQL keyword. Invalid name: '{time_column}'"
                 raise TimeColumnValidationError(
                     message,
                     model=self.model.name,
@@ -152,10 +149,7 @@ class TimeColumnValidation:
 
         if duplicates:
             unique_duplicates = list(set(duplicates))
-            message = (
-                "A Model cannot define duplicate time column names. "
-                f"Duplicate names: {unique_duplicates}"
-            )
+            message = f"A Model cannot define duplicate time column names. Duplicate names: {unique_duplicates}"
             raise NamingCollisionError(
                 message,
                 model=self.model.name,

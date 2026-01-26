@@ -10,7 +10,7 @@ from pysemantic.validation.registry.validation import RegistryValidation
 
 class Registry:
     """
-    Centralized registry for semantic layer objects. Loads raw metadat, validates it, and populates stoes.
+    Centralized registry for semantic layer objects. Loads raw metadata, validates it, and populates stores.
     Acts as the single source of truth for:
     - Parser
     - Entity Graph
@@ -65,10 +65,16 @@ class Registry:
         loader.load_objects()
         return loader
 
-    def _validate_models(self, models: dict[str, Model], entities: dict[str, Entity], dimensions: dict[str, Dimension], measures: dict[str, Measure]) -> None:
+    def _validate_models(
+        self,
+        models: dict[str, Model],
+        entities: dict[str, Entity],
+        dimensions: dict[str, Dimension],
+        measures: dict[str, Measure],
+    ) -> None:
         """
         Validate all models.
-        
+
         Args:
             models: Dictionary of Model instances to validate.
             entities: Dictionary of Entity instances to validate.
@@ -81,9 +87,9 @@ class Registry:
     def _register_models(self, models: dict[str, Model]) -> None:
         """
         Register models and extract their dimensions, measures, and entities.
-        
+
         Indexes all models, dimensions, measures, and entities in the registry.
-        
+
         Args:
             models: List of validated Model instances to register.
         """
