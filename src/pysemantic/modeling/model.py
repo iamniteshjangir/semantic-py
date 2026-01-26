@@ -94,10 +94,16 @@ class Model:
         self.measures = measures if measures is not None else []
         self.time_columns = time_columns if time_columns is not None else []
 
+        self.validate_model()
         self.validate_entities()
         self.validate_dimensions()
         self.validate_measures()
         self.validate_time_columns()
+
+    def validate_model(self) -> None:
+        """Validate the model."""
+        validator = validation.ModelValidation(self)
+        validator.validate()
 
     def validate_entities(self) -> None:
         """Explicitly validate the model's entities.
@@ -174,12 +180,14 @@ class Model:
             return False
 
         try:
+            self.validate_model()
             self.validate_entities()
             self.validate_dimensions()
             self.validate_measures()
             self.validate_time_columns()
             return True
         except (
+            validation.ModelValidationError,
             validation.EntityValidationError,
             validation.MeasureValidationError,
             validation.DimensionValidationError,

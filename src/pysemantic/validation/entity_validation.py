@@ -51,9 +51,7 @@ class EntityValidation:
         Returns:
             The primary entity if found, None otherwise
         """
-        primary_entities = [
-            entity for entity in self.model.entities if entity.entity_type == EntityType.PRIMARY
-        ]
+        primary_entities = [entity for entity in self.model.entities if entity.entity_type == EntityType.PRIMARY]
         return primary_entities[0] if primary_entities else None
 
     def _validate_exactly_one_primary_entity(self) -> None:
@@ -62,9 +60,7 @@ class EntityValidation:
         Raises:
             EntityValidationError: If there is not exactly one primary entity
         """
-        primary_entities = [
-            entity for entity in self.model.entities if entity.entity_type == EntityType.PRIMARY
-        ]
+        primary_entities = [entity for entity in self.model.entities if entity.entity_type == EntityType.PRIMARY]
 
         count = len(primary_entities)
         if count == 0:
@@ -76,8 +72,7 @@ class EntityValidation:
         if count > 1:
             primary_names = [e.name for e in primary_entities]
             raise EntityValidationError(
-                f"A Model must declare exactly one primary entity. "
-                f"Found {count} primary entities: {primary_names}",
+                f"A Model must declare exactly one primary entity. Found {count} primary entities: {primary_names}",
                 model=self.model.name,
                 primary_entities=primary_names,
             )
@@ -176,10 +171,7 @@ class EntityValidation:
 
         if duplicates:
             unique_duplicates = list(set(duplicates))
-            message = (
-                "A Model cannot define duplicate entity names. "
-                f"Duplicate names: {unique_duplicates}"
-            )
+            message = f"A Model cannot define duplicate entity names. Duplicate names: {unique_duplicates}"
             raise NamingCollisionError(
                 message,
                 model=self.model.name,

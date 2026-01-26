@@ -32,6 +32,10 @@ class ModelingError(PySemanticError):
     """Raised for issues originating from the modeling package."""
 
 
+class RegistryError(PySemanticError):
+    """Raised for issues originating from the registry package."""
+
+
 class ValidationError(PySemanticError):
     """Raised for input/model validation related issues."""
 
@@ -61,7 +65,8 @@ def format_error(domain: str, summary: str, **details: Any) -> str:
     """Create a consistently formatted error message.
 
     Args:
-        domain: Logical area where the error originated, e.g. ``"validation.entities"``.
+        domain: Logical area where the error originated, e.g.
+        ``"validation.entities"`` or ``"registry.loader"``.
         summary: Short, user-friendly description of the failure.
         **details: Optional keyword arguments that add structured context.
 
