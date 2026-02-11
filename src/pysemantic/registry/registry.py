@@ -162,12 +162,13 @@ class Registry:
                     # 2. Lookup which model owns 'region' as a PRIMARY entity
                     target_model_name = self.primary_entity_map.get(foreign_entity_name)
 
-                    if target_model_name not in self.models:
+                    if not target_model_name:
                         raise RegistryError(
                             format_error(
                                 "registry.graph",
-                                f"Broken Reference: Model '{model.name}' references non-existent model '{target_model_name}'",
-                                details="Target Model not found in registry.",
+                                f"Broken Reference: Could not find a primary model for foreign key "
+                                f"'{foreign_entity_name}' in model '{model.name}'.",
+                                details="Ensure the referenced entity is defined as a PRIMARY entity in another model.",
                             )
                         )
 

@@ -40,7 +40,7 @@ select = [
     "UP", # pyupgrade
     "RUF"
 ]
-ignore = ["E203", "E266", "E501"]
+ignore = ["E203", "E266"]
 fixable = ["ALL"]
 
 [tool.ruff.lint.isort]
