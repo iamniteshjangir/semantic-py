@@ -1,22 +1,22 @@
 import networkx as nx
-from typing import List, Dict, Tuple
+
 from pysemantic.exceptions import RegistryError, format_error
 
-class EntityGraph:
 
+class EntityGraph:
     def __init__(self):
         """
         we use a Directed graph, If You need multiple joins between same table (e.g Buyer/Seller)
         You should strictly use distinct Models (Role-Playing Dimensions)
         """
         self.graph = nx.DiGraph()
-    
+
     def add_node(self, model_name: str):
         """Registers a node in the Graph"""
         if not self.graph.has_node(model_name):
             self.graph.add_node(model_name)
-    
-    def add_edge(self, from_model: str, to_model: str, join_on: Dict[str, str]):
+
+    def add_edge(self, from_model: str, to_model: str, join_on: dict[str, str]):
         """
         Creates a directed edge from Foreign Entity -> Primary Entity
 
@@ -25,12 +25,8 @@ class EntityGraph:
             to_model: The model holding the Primary Key (e.g. 'customers')
             join_on: Metadata for SQL generation {'left': 'customer_id', 'right': 'id'}
         """
-        self.graph.add_edge(
-            from_model,
-            to_model,
-            join_condition=join_on
-        )
-    
+        self.graph.add_edge(from_model, to_model, join_condition=join_on)
+
     def validate(self):
         """
         Validations:
@@ -40,20 +36,16 @@ class EntityGraph:
         if not nx.is_directed_acyclic_graph(self.graph):
             cycles = list(nx.simple_cycles(self.graph))
             raise RegistryError(
-                format_error(
-                    "registry.entity_graph",
-                    "Circular dependency detected! Logic Loop",
-                    cycles=cycles
-                )
+                format_error("registry.entity_graph", "Circular dependency detected! Logic Loop", cycles=cycles)
             )
 
-    def get_join_path(self, start_model: str, end_model: str) -> List[Tuple[str, str, Dict[str, str]]]:
+    def get_join_path(self, start_model: str, end_model: str) -> list[tuple[str, str, dict[str, str]]]:
         """
         Returns the deterministic join path between two models.
 
         Returns:
             List of steps: [('orders', 'customers', {'left':..., 'right':....}), ...]
-        
+
         Raises:
             RegistryError: If no path exists or if multiple paths exist (Ambiguity).
         """
@@ -63,10 +55,10 @@ class EntityGraph:
                     "registry.entity_graph",
                     "One of the Model not found in the graph",
                     start_model=start_model,
-                    end_model=end_model
+                    end_model=end_model,
                 )
             )
-        
+
         all_paths = list(nx.all_simple_paths(self.graph, source=start_model, target=end_model))
 
         if len(all_paths) == 0:
@@ -75,26 +67,26 @@ class EntityGraph:
                     "registry.entity_graph",
                     "No path found between these two models",
                     start_model=start_model,
-                    end_model=end_model
+                    end_model=end_model,
                 )
             )
-        
+
         if len(all_paths) > 1:
             raise RegistryError(
                 format_error(
                     "registry.entity_graph",
                     "Multiple paths found between these two models",
                     start_model=start_model,
-                    end_model=end_model
+                    end_model=end_model,
                 )
             )
-        
+
         path_nodes = all_paths[0]
         join_chain = []
         for i in range(len(path_nodes) - 1):
             source = path_nodes[i]
-            target = path_nodes[i+1]
+            target = path_nodes[i + 1]
             edge_data = self.graph.get_edge_data(source, target)
-            join_chain.append((source, target, edge_data['join_condition']))
-        
+            join_chain.append((source, target, edge_data["join_condition"]))
+
         return join_chain
