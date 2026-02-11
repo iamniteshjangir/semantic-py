@@ -10,8 +10,10 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = ">=3.11,<3.14"
 pytest = "^9.0.1"
+networkx = "^3.6.1"
+matplotlib = "^3.10.8"
 
 [tool.poetry.group.dev.dependencies]
 pytest-cov = "^4.0.0"
@@ -38,7 +40,7 @@ select = [
     "UP", # pyupgrade
     "RUF"
 ]
-ignore = ["E203", "E266"]
+ignore = ["E203", "E266", "E501"]
 fixable = ["ALL"]
 
 [tool.ruff.lint.isort]
