@@ -305,6 +305,28 @@ class RegistryValidation:
                     )
                 visited.add(measure.name)
 
+    def _validate_no_duplicate_dimensions_across_models(self) -> None:
+        """
+        TODO: In V2, Dimensions are attributes of a specific model. Users typically query them with context or
+        the Planner finds them attached to the root. The Planner logic should be:
+        1. Identify Root Model (from Metrics).
+        2. Check if Dimension exists in Root Model.
+        3. If not, check if Dimension exists in any reachable Joined Model.
+        4. If found in multiple joined models, raise AmbiguousDimensionError.
+
+        Rule 8: Same dimensions name not allowed in multiple models
+        """
+        visited = set()
+        for model in self.models.values():
+            for dimension in model.dimensions:
+                if dimension.name in visited:
+                    message = f"Same dimension name not allowed in multiple models. Dimension: {dimension.name}"
+                    raise RegistryValidationError(
+                        message,
+                        dimension=dimension.name,
+                    )
+                visited.add(dimension.name)
+
     def validate(self) -> None:
         self._validate_no_duplicate_model_names()
         self._validate_foreign_entities_cross_model()
@@ -313,3 +335,4 @@ class RegistryValidation:
         self._validate_no_same_table_different_grains()
         self._validate_no_duplicate_primary_entities_same_table()
         self._validate_no_duplicate_metrics_across_models()
+        self._validate_no_duplicate_dimensions_across_models()
