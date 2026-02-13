@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import networkx as nx
 
 from pysemantic.exceptions import RegistryError, format_error
@@ -100,12 +99,13 @@ class EntityGraph:
             output_file: Path where the graph image will be saved.
         """
         try:
+            import matplotlib.pyplot as plt
+
             # Optimize Layout for Hierarchical/DAG structure
             try:
                 pos = nx.nx_agraph.graphviz_layout(self.graph, prog="dot")
             except (ImportError, ModuleNotFoundError):
                 # Fallback to shell layout
-                print("Graphviz not found, using shell layout.")
                 pos = nx.shell_layout(self.graph)
 
             plt.figure(figsize=(10, 8))

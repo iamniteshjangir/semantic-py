@@ -48,8 +48,6 @@ class Registry:
 
         self._source_paths.append(str(resolved_source))
 
-        self.graph.visualize_graph()
-
     def _reset_state(self) -> None:
         self.models: dict[str, Model] = {}
         # Keeping these for now, we can remove them later, because models dict is enough
@@ -192,3 +190,6 @@ class Registry:
 
     def get_join_path(self, start_model: str, end_model: str):
         return self.graph.get_join_path(start_model, end_model)
+
+    def generate_graph(self):
+        self.graph.visualize_graph()
