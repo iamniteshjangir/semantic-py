@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import networkx as nx
 
 from pysemantic.exceptions import RegistryError, format_error
@@ -90,3 +91,49 @@ class EntityGraph:
             join_chain.append((source, target, edge_data["join_condition"]))
 
         return join_chain
+
+    def visualize_graph(self, output_file: str = "entity_graph.png") -> None:
+        """
+        Visualizes the entity graph and saves it to a file.
+
+        Args:
+            output_file: Path where the graph image will be saved.
+        """
+        try:
+            # Optimize Layout for Hierarchical/DAG structure
+            try:
+                pos = nx.nx_agraph.graphviz_layout(self.graph, prog="dot")
+            except (ImportError, ModuleNotFoundError):
+                # Fallback to shell layout
+                print("Graphviz not found, using shell layout.")
+                pos = nx.shell_layout(self.graph)
+
+            plt.figure(figsize=(10, 8))
+
+            nx.draw(
+                self.graph,
+                pos,
+                with_labels=True,
+                node_color="lightblue",
+                node_size=2000,
+                font_size=10,
+                font_weight="bold",
+                arrowsize=20,
+                arrows=True,
+            )
+
+            # Add edge labels (join keys)
+            edge_labels = nx.get_edge_attributes(self.graph, "join_condition")
+            # Format labels for readability
+            formatted_labels = {k: f"{v['left']} -> {v['right']}" for k, v in edge_labels.items()}
+
+            nx.draw_networkx_edge_labels(self.graph, pos, edge_labels=formatted_labels, font_color="red", font_size=8)
+
+            plt.title("Entity Graph")
+            plt.axis("off")
+            plt.tight_layout()
+            plt.savefig(output_file)
+            plt.close()
+            print(f"Graph visualization saved to {output_file}")
+        except Exception as e:
+            raise RegistryError(format_error("registry.entity_graph", "Failed to visualize graph", error=str(e))) from e
