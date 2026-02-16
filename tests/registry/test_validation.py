@@ -107,66 +107,6 @@ def test_foreign_entity_missing_reference():
     assert "non_existent_customer" in str(exc.value)
 
 
-def test_circular_dependency_direct():
-    """Test Rule 3: Circular entities (A -> B -> A)."""
-    # Model A references B
-    model_a = Model(
-        name="model_a",
-        table="table_a",
-        primary_key="id",
-        entities=[
-            Entity("entity_a", EntityType.PRIMARY, "id"),
-            Entity("entity_b", EntityType.FOREIGN, "b_id"),
-        ],
-    )
-
-    # Model B references A
-    model_b = Model(
-        name="model_b",
-        table="table_b",
-        primary_key="id",
-        entities=[
-            Entity("entity_b", EntityType.PRIMARY, "id"),
-            Entity("entity_a", EntityType.FOREIGN, "a_id"),
-        ],
-    )
-
-    validator = RegistryValidation(
-        models={"model_a": model_a, "model_b": model_b}, entities={}, dimensions={}, measures={}
-    )
-
-    with pytest.raises(RegistryValidationError) as exc:
-        validator.validate()
-
-    assert "Circular entity references detected" in str(exc.value)
-    # The cycle path check depends on implementation order, but should contain both
-    assert "model_a" in str(exc.value)
-    assert "model_b" in str(exc.value)
-
-
-def test_circular_dependency_self_reference_ignored():
-    """
-    Test Rule 3: Self-references (A -> A) should NOT be considered circular dependency errors.
-    We use mocks because Model() validation prevents creating a model with self-referencing
-    foreign/primary entity naming collision, but we want to test the Registry logic specifically.
-    """
-    mock_model = MagicMock()
-    mock_model.name = "model_a"
-    mock_model.entities = [
-        MagicMock(name="entity_a", entity_type=EntityType.PRIMARY),
-        MagicMock(name="entity_a", entity_type=EntityType.FOREIGN),
-    ]
-    # Configure mocks to return name correctly when accessed as attribute
-    mock_model.entities[0].name = "entity_a"
-    mock_model.entities[1].name = "entity_a"
-
-    validator = RegistryValidation(models={"model_a": mock_model}, entities={}, dimensions={}, measures={})
-
-    # Should pass without circular dependency error
-    # We only care about _validate_no_circular_entities passing
-    validator._validate_no_circular_entities()
-
-
 def test_identical_models():
     """Test Rule 4: Two identical models pointing to the same table."""
     model1 = Model(
@@ -193,77 +133,19 @@ def test_identical_models():
     assert "Two identical models pointing to the same table" in str(exc.value)
 
 
-def test_identical_models_subtle_difference():
-    """Test that subtly different models on the same table are not ALLOWED (not identical)."""
-    model1 = Model(
-        name="model1",
-        table="common_table",
-        primary_key="id",
-        dimensions=[Dimension("dim1", "string")],
-        entities=[Entity("ent1", EntityType.PRIMARY, "id")],
-    )
-
-    # Different dimension name
-    model2 = Model(
-        name="model2",
-        table="common_table",
-        primary_key="id",
-        dimensions=[Dimension("dim2", "string")],
-        entities=[Entity("ent1", EntityType.PRIMARY, "id")],
-    )
-
-    validator = RegistryValidation(models={"model1": model1, "model2": model2}, entities={}, dimensions={}, measures={})
-
-    with pytest.raises(RegistryValidationError) as exc:
-        validator.validate()
-    assert "Two PRIMARY entities with same name" in str(exc.value)
-
-
-def test_same_table_different_grains():
-    """Test Rule 5: Same table but different grains (hourly vs daily)."""
-    # Both point to same table but imply different aggregation grains
-    sales_daily = Model(
-        name="sales_daily",
-        table="sales_data",
-        primary_key="id",
-        entities=[Entity("sales_daily_ent", EntityType.PRIMARY, "id")],
-    )
-
-    sales_hourly = Model(
-        name="sales_hourly",
-        table="sales_data",
-        primary_key="id",
-        entities=[Entity("sales_hourly_ent", EntityType.PRIMARY, "id")],
-    )
-
-    validator = RegistryValidation(
-        models={"sales_daily": sales_daily, "sales_hourly": sales_hourly},
-        entities={},
-        dimensions={},
-        measures={},
-    )
-
-    with pytest.raises(RegistryValidationError) as exc:
-        validator.validate()
-
-    assert "different grains" in str(exc.value)
-    assert "sales_data" in str(exc.value)
-
-
-def test_duplicate_primary_entities_same_table():
-    """Test Rule 6: Duplicate primary entity definitions for same table."""
-    # Two models on same table, defining the same primary entity
-    # Make them non-identical (Rule 4) by adding a measure to one
+def test_duplicate_primary_entities_global():
+    """Test Rule 5: A Primary Entity Name must be globally unique."""
+    # Two models (can be same or different table) defining the same primary entity name
     model_a = Model(
         name="model_a",
-        table="users_table",
+        table="users_table_a",
         primary_key="id",
         entities=[Entity("user", EntityType.PRIMARY, "id")],
     )
 
     model_b = Model(
         name="model_b",
-        table="users_table",
+        table="users_table_b",
         primary_key="id",
         entities=[Entity("user", EntityType.PRIMARY, "id")],
         measures=[Measure("some_measure", "sum", "col")],
@@ -276,7 +158,8 @@ def test_duplicate_primary_entities_same_table():
     with pytest.raises(RegistryValidationError) as exc:
         validator.validate()
 
-    assert "Two PRIMARY entities with same name 'user' across two models with same table" in str(exc.value)
+    assert "Ambiguous Concept Ownership" in str(exc.value)
+    assert "user" in str(exc.value)
 
 
 def test_duplicate_metrics():
@@ -305,5 +188,34 @@ def test_duplicate_metrics():
     with pytest.raises(RegistryError) as exc:
         validator.validate()
 
-    assert "Same metric name not allowed in multiple models" in str(exc.value)
+    assert "Same measure name not allowed" in str(exc.value)
     assert "total_revenue" in str(exc.value)
+
+
+def test_duplicate_dimensions():
+    """Test Rule 8: Same dimension name not allowed in multiple models."""
+    model_a = Model(
+        name="sales_na",
+        table="sales_na",
+        primary_key="id",
+        entities=[Entity("sales_na", EntityType.PRIMARY, "id")],
+        dimensions=[Dimension("country", "string")],
+    )
+
+    model_b = Model(
+        name="sales_eu",
+        table="sales_eu",
+        primary_key="id",
+        entities=[Entity("sales_eu", EntityType.PRIMARY, "id")],
+        dimensions=[Dimension("country", "string")],  # Duplicate dimension name
+    )
+
+    validator = RegistryValidation(
+        models={"model_a": model_a, "model_b": model_b}, entities={}, dimensions={}, measures={}
+    )
+
+    with pytest.raises(RegistryValidationError) as exc:
+        validator.validate()
+
+    assert "Same dimension name not allowed" in str(exc.value)
+    assert "country" in str(exc.value)

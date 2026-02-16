@@ -3,7 +3,7 @@ from unittest.mock import patch
 import pytest
 
 from pysemantic.exceptions import RegistryError
-from pysemantic.modeling import Entity, EntityType, Model
+from pysemantic.modeling import Entity, EntityType, Measure, Model
 from pysemantic.registry.registry import Registry
 
 
@@ -72,7 +72,7 @@ def test_register_model_populates_dicts(registry):
         entities=[Entity("user", EntityType.PRIMARY, "id")],
     )
 
-    registry._register_model(model)
+    registry._register_models({model.name: model})
 
     assert "test_model" in registry.models
     assert registry.models["test_model"] == model
@@ -88,10 +88,10 @@ def test_register_duplicate_model_raises_error(registry):
         entities=[Entity("user", EntityType.PRIMARY, "id")],
     )
 
-    registry._register_model(model)
+    registry._register_models({model.name: model})
 
     with pytest.raises(RegistryError) as exc:
-        registry._register_model(model)
+        registry._register_models({model.name: model})
 
     assert "Duplicate model detected" in str(exc.value)
 
@@ -101,3 +101,26 @@ def test_reset_state(registry):
     registry.models["foo"] = "bar"
     registry._reset_state()
     assert registry.models == {}
+
+
+def test_get_model_by_metric(registry):
+    """Test retrieving model by metric name."""
+    model = Model(
+        "sales", "t", "id", entities=[Entity("s", EntityType.PRIMARY, "id")], measures=[Measure("rev", "sum", "c")]
+    )
+    # Manually register to setup state without loading from file
+    registry.models["sales"] = model
+    registry.metric_index["rev"] = "sales"
+
+    retrieved = registry.get_model_by_metric("rev")
+    assert retrieved == model
+
+    with pytest.raises(RegistryError):
+        registry.get_model_by_metric("unknown_metric")
+
+
+def test_generate_graph(registry):
+    """Test generate_graph calls visualize_graph on the entity graph."""
+    with patch.object(registry.graph, "visualize_graph") as mock_viz:
+        registry.generate_graph()
+        mock_viz.assert_called_once()
