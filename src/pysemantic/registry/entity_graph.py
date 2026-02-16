@@ -134,6 +134,6 @@ class EntityGraph:
             plt.tight_layout()
             plt.savefig(output_file)
             plt.close()
-            print(f"Graph visualization saved to {output_file}")
+
         except Exception as e:
             raise RegistryError(format_error("registry.entity_graph", "Failed to visualize graph", error=str(e))) from e
