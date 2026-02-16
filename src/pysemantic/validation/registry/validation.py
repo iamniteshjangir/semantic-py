@@ -1,7 +1,6 @@
 from pysemantic.exceptions import RegistryError, format_error
 from pysemantic.modeling import Dimension, Entity, Measure, Model
 from pysemantic.modeling.entity import EntityType
-from pysemantic.validation.common.validation_constants import GRAIN_KEYWORDS
 
 
 class RegistryValidationError(RegistryError):
@@ -19,12 +18,11 @@ class RegistryValidation:
         1. No duplicate model names.
         2. Foreign entity must reference an existing model.
            Foreign Entity Must Match Primary Entity name in other models.
-        3. No circular entities like A→B and B→A.
-        4. Two identical models pointing to the same tables with same model definitions are not allowed.
-        5. Two models using same table name but for different grains (hourly, daily, monthly, yearly) not allowed.
-        6. Two PRIMARY entities with same name across two models with same table are not allowed.
+        3. Two identical models pointing to the same tables with same model definitions are not allowed.
+        4. Two PRIMARY entities with same name across two models.
            for eg. Same entity name "customer" defined as PRIMARY in two models not allowed
-        7. Same metric name not allowed in multiple models
+        5. Same metric name not allowed in multiple models
+        6. Same dimension name not allowed in multiple models
     """
 
     def __init__(
@@ -80,92 +78,8 @@ class RegistryValidation:
                                 foreign_entity=entity.name,
                             )
 
-    def _validate_no_circular_entities(self) -> None:
-        """Rule 3: No circular entities like A→B and B→A."""
-        # Build a graph: model_name -> set of models it references via foreign entities
-        model_references: dict[str, set[str]] = {}
-        primary_entity_to_model: dict[str, str] = {}
-
-        # First, build map of primary entity names to their models
-        for model_name, model in self.models.items():
-            if model.entities:
-                for entity in model.entities:
-                    if entity.entity_type == EntityType.PRIMARY:
-                        primary_entity_to_model[entity.name] = model_name
-
-        # Build the reference graph
-        for model_name, model in self.models.items():
-            model_references[model_name] = set()
-            if model.entities:
-                for entity in model.entities:
-                    if entity.entity_type == EntityType.FOREIGN:
-                        if entity.name in primary_entity_to_model:
-                            referenced_model = primary_entity_to_model[entity.name]
-                            if referenced_model != model_name:  # Don't count self-references
-                                model_references[model_name].add(referenced_model)
-
-        # Check for cycles using DFS
-        def has_cycle(node: str, visited: set[str], rec_stack: set[str]) -> bool:
-            visited.add(node)
-            rec_stack.add(node)
-
-            for neighbor in model_references.get(node, set()):
-                if neighbor not in visited:
-                    if has_cycle(neighbor, visited, rec_stack):
-                        return True
-                elif neighbor in rec_stack:
-                    # Found a back edge, cycle detected
-                    return True
-
-            rec_stack.remove(node)
-            return False
-
-        visited = set()
-        for model_name in self.models.keys():
-            if model_name not in visited:
-                if has_cycle(model_name, visited, set()):
-                    # Find the cycle path for better error message
-                    cycle_path = self._find_cycle_path(model_references)
-                    message = f"Circular entity references detected. Models form a cycle: {' → '.join(cycle_path)}"
-                    raise RegistryValidationError(
-                        message,
-                        cycle_path=cycle_path,
-                    )
-
-    def _find_cycle_path(self, model_references: dict[str, set[str]]) -> list[str]:
-        """Helper to find a cycle path for error reporting."""
-        visited = set()
-
-        def dfs(node: str, path: list[str]) -> tuple[bool, list[str]]:
-            if node in path:
-                # Found cycle, extract the cycle portion
-                cycle_start = path.index(node)
-                cycle = [*path[cycle_start:], node]
-                return True, cycle
-            if node in visited:
-                return False, []
-
-            visited.add(node)
-            path.append(node)
-
-            for neighbor in model_references.get(node, set()):
-                found, cycle = dfs(neighbor, path)
-                if found:
-                    return True, cycle
-
-            path.pop()
-            return False, []
-
-        for model_name in self.models.keys():
-            if model_name not in visited:
-                found, cycle = dfs(model_name, [])
-                if found:
-                    return cycle
-
-        return []
-
     def _validate_no_identical_models(self) -> None:
-        """Rule 4: Two identical models pointing to the same tables with same model definitions are not allowed."""
+        """Rule 3: Two identical models pointing to the same tables with same model definitions are not allowed."""
         model_list = list(self.models.values())
 
         for i, model1 in enumerate(model_list):
@@ -217,83 +131,49 @@ class RegistryValidation:
 
         return True
 
-    def _validate_no_same_table_different_grains(self) -> None:
-        """Rule 5: Two models using same table name but
-        for different grains (hourly, daily, monthly, yearly) not allowed."""
-        table_to_models: dict[str, list[Model]] = {}
+    def _validate_no_duplicate_primary_entities(self) -> None:
+        """
+        Rule 4: A Primary Entity Name must be globally unique across the entire registry.
 
-        # Group models by table name
-        for model in self.models.values():
-            if model.table not in table_to_models:
-                table_to_models[model.table] = []
-            table_to_models[model.table].append(model)
+        Why: The Entity Name acts as the 'Node ID' in the Join Graph. If two models
+        both claim to be the Primary owner of 'user', the graph becomes ambiguous
+        (we don't know which table to join to when someone asks for 'user').
+        """
+        # Map to track ownership: { 'entity_name': 'model_name_that_owns_it' }
+        primary_owner_map: dict[str, str] = {}
 
-        # Check for same table with different grains
-        for table, models in table_to_models.items():
-            if len(models) > 1:
-                # Extract grain from model names
-                model_grains = {}
-                for model in models:
-                    grain = None
-                    model_name_lower = model.name.lower()
-                    for g in GRAIN_KEYWORDS:
-                        if g in model_name_lower:
-                            grain = g
-                            break
-                    model_grains[model.name] = grain
+        for model_name, model in self.models.items():
+            if not model.entities:
+                continue
 
-                # Check if there are different grains
-                grains_found = [g for g in model_grains.values() if g is not None]
-                if len(set(grains_found)) > 1:
-                    message = (
-                        f"Two models using same table name '{table}' but for different grains "
-                        f"are not allowed. Models: {[m.name for m in models]}"
-                    )
-                    raise RegistryValidationError(
-                        message,
-                        table=table,
-                        models=[m.name for m in models],
-                        grains=grains_found,
-                    )
+            for entity in model.entities:
+                if entity.entity_type == EntityType.PRIMARY:
+                    # Check if this concept is already owned by another model
+                    if entity.name in primary_owner_map:
+                        existing_owner = primary_owner_map[entity.name]
 
-    def _validate_no_duplicate_primary_entities_same_table(self) -> None:
-        """Rule 6: Two PRIMARY entities with same name across two models with same table are not allowed."""
-        # Group models by table name
-        table_to_models: dict[str, list[Model]] = {}
-        for model in self.models.values():
-            if model.table not in table_to_models:
-                table_to_models[model.table] = []
-            table_to_models[model.table].append(model)
-
-        # Check for duplicate primary entities in models with same table
-        for table, models in table_to_models.items():
-            if len(models) > 1:
-                primary_entities_by_name: dict[str, list[str]] = {}
-                for model in models:
-                    if model.entities:
-                        for entity in model.entities:
-                            if entity.entity_type == EntityType.PRIMARY:
-                                if entity.name not in primary_entities_by_name:
-                                    primary_entities_by_name[entity.name] = []
-                                primary_entities_by_name[entity.name].append(model.name)
-
-                # Check for duplicates
-                for entity_name, model_names in primary_entities_by_name.items():
-                    if len(model_names) > 1:
                         message = (
-                            f"Two PRIMARY entities with same name '{entity_name}' across "
-                            f"two models with same table '{table}' are not allowed. "
-                            f"Models: {model_names}"
+                            f"Ambiguous Concept Ownership: The primary entity '{entity.name}' "
+                            f"is claimed by multiple models: ['{existing_owner}', '{model_name}']. "
+                            f"A concept can have only one primary owner."
                         )
+
                         raise RegistryValidationError(
                             message,
-                            table=table,
-                            entity_name=entity_name,
-                            models=model_names,
+                            entity=entity.name,
+                            conflicting_models=[existing_owner, model_name],
+                            hint=(
+                                f"If these are role-playing dimensions (e.g. Buyer vs Seller), "
+                                f"rename the entities to unique concepts like "
+                                f"'{entity.name}_buyer' and '{entity.name}_seller'."
+                            ),
                         )
 
+                    # Register ownership
+                    primary_owner_map[entity.name] = model_name
+
     def _validate_no_duplicate_metrics_across_models(self) -> None:
-        """Rule 7: Same measure name not allowed in multiple models"""
+        """Rule 5: Same measure name not allowed in multiple models"""
         visited = set()
         for model in self.models.values():
             for measure in model.measures:
@@ -314,7 +194,7 @@ class RegistryValidation:
         3. If not, check if Dimension exists in any reachable Joined Model.
         4. If found in multiple joined models, raise AmbiguousDimensionError.
 
-        Rule 8: Same dimensions name not allowed in multiple models
+        Rule 6: Same dimensions name not allowed in multiple models
         """
         visited = set()
         for model in self.models.values():
@@ -330,9 +210,7 @@ class RegistryValidation:
     def validate(self) -> None:
         self._validate_no_duplicate_model_names()
         self._validate_foreign_entities_cross_model()
-        self._validate_no_circular_entities()
         self._validate_no_identical_models()
-        self._validate_no_same_table_different_grains()
-        self._validate_no_duplicate_primary_entities_same_table()
+        self._validate_no_duplicate_primary_entities()
         self._validate_no_duplicate_metrics_across_models()
         self._validate_no_duplicate_dimensions_across_models()
