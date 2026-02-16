@@ -1,7 +1,6 @@
 from pysemantic.exceptions import RegistryError, format_error
 from pysemantic.modeling import Dimension, Entity, Measure, Model
 from pysemantic.modeling.entity import EntityType
-from pysemantic.validation.common.validation_constants import GRAIN_KEYWORDS
 
 
 class RegistryValidationError(RegistryError):

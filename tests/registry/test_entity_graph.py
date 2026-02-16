@@ -1,7 +1,7 @@
 import pytest
 
-from pysemantic.registry.entity_graph import EntityGraph
 from pysemantic.exceptions import RegistryError
+from pysemantic.registry.entity_graph import EntityGraph
 
 
 @pytest.fixture

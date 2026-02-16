@@ -19,7 +19,7 @@ def test_entity_repr():
     """Test string representation of Entity."""
     # Note: formatting depends on enum repr
     entity = Entity("order", EntityType.FOREIGN, "order_id")
-    expected_repr = f"Entity(name='order', entity_type='foreign', column='order_id')"
+    expected_repr = "Entity(name='order', entity_type='foreign', column='order_id')"
     # Adjust if enum repr is used directly (e.g. <EntityType.FOREIGN: 'foreign'>)
     # Based on source code: f"..., entity_type={self.entity_type.value!r}, ..."
     # So it should result in 'foreign' (quoted string)

@@ -1,5 +1,6 @@
 import pytest
-from pysemantic.modeling import Model, Dimension, Measure, Entity, EntityType
+
+from pysemantic.modeling import Dimension, Entity, EntityType, Measure, Model
 from pysemantic.validation.entity_validation import EntityValidationError
 
 
