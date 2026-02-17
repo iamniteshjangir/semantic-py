@@ -113,7 +113,7 @@ def test_identical_models():
         name="model1",
         table="common_table",
         primary_key="id",
-        dimensions=[Dimension("dim1", "string")],
+        dimensions=[Dimension("dim1", "col1", "string")],
         entities=[Entity("ent1", EntityType.PRIMARY, "id")],
     )
 
@@ -121,7 +121,7 @@ def test_identical_models():
         name="model2",
         table="common_table",
         primary_key="id",
-        dimensions=[Dimension("dim1", "string")],
+        dimensions=[Dimension("dim1", "col1", "string")],
         entities=[Entity("ent1", EntityType.PRIMARY, "id")],
     )
 
@@ -162,8 +162,8 @@ def test_duplicate_primary_entities_global():
     assert "user" in str(exc.value)
 
 
-def test_duplicate_metrics():
-    """Test Rule 7: Same metric name not allowed in multiple models."""
+def test_duplicate_measures():
+    """Test Rule 7: Same measure name not allowed in multiple models."""
     model_a = Model(
         name="sales_na",
         table="sales_na",
@@ -199,7 +199,7 @@ def test_duplicate_dimensions():
         table="sales_na",
         primary_key="id",
         entities=[Entity("sales_na", EntityType.PRIMARY, "id")],
-        dimensions=[Dimension("country", "string")],
+        dimensions=[Dimension("country", "country_col", "string")],
     )
 
     model_b = Model(
@@ -207,7 +207,7 @@ def test_duplicate_dimensions():
         table="sales_eu",
         primary_key="id",
         entities=[Entity("sales_eu", EntityType.PRIMARY, "id")],
-        dimensions=[Dimension("country", "string")],  # Duplicate dimension name
+        dimensions=[Dimension("country", "country_col", "string")],  # Duplicate dimension name
     )
 
     validator = RegistryValidation(

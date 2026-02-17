@@ -157,55 +157,28 @@ class TimeColumnValidation:
             )
 
     def _validate_time_column_name_collisions(self, time_column: str) -> None:
-        """Rule 3: A time column cannot collide with dimensions, entities, measures, or primary key.
+        """Rule 3: Time columns cannot collide with measures.
 
-        Ensures that time column names don't conflict with:
-        - Dimension names
-        - Entity names
-        - Measure names
-        - Primary key column name
-
-        This prevents ambiguity when referencing fields in queries.
-
-        Args:
-            time_column: The time column name to validate
-
-        Raises:
-            TimeColumnValidationError: If time column name conflicts with dimension,
-            entity, measure, or primary key
+        We ALLOW collisions with Dimensions and Entities because:
+        1. A Time Column is almost always exposed as a Dimension (so you can group by it).
+        2. A Time Column might be a Foreign Key (Entity) to a Date Table.
         """
-        dimension_names = self._get_dimension_names()
-        entity_names = self._get_entity_names()
         measure_names = self._get_measure_names()
         primary_key = self.model.primary_key
 
-        if time_column in dimension_names:
-            raise NamingCollisionError(
-                "Time column name cannot conflict with dimension names.",
-                model=self.model.name,
-                time_column=time_column,
-                conflict="dimension",
-            )
-
-        if time_column in entity_names:
-            raise NamingCollisionError(
-                "Time column name cannot conflict with entity names.",
-                model=self.model.name,
-                time_column=time_column,
-                conflict="entity",
-            )
-
+        # ONLY check for collision with Measures.
         if time_column in measure_names:
             raise NamingCollisionError(
-                "Time column name cannot conflict with measure names.",
+                f"Ambiguous Name: '{time_column}' is defined as both a Time Column and a Measure.",
                 model=self.model.name,
                 time_column=time_column,
                 conflict="measure",
             )
 
+        # Checking against PK is usually safe/good
         if time_column == primary_key:
             raise NamingCollisionError(
-                "Time column name cannot conflict with the primary key.",
+                f"Time column '{time_column}' cannot be the Primary Key.",
                 model=self.model.name,
                 time_column=time_column,
                 conflict="primary_key",

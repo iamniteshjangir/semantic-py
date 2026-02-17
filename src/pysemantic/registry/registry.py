@@ -184,12 +184,18 @@ class Registry:
 
     def get_model_by_metric(self, metric_name: str) -> Model:
         if metric_name not in self.metric_index:
-            raise RegistryError(f"Metric '{metric_name}' not found.")
+            raise RegistryError(
+                format_error(
+                    "registry.registry",
+                    "Metric not found",
+                    metric=metric_name,
+                )
+            )
         model_name = self.metric_index[metric_name]
         return self.models[model_name]
 
     def get_join_path(self, start_model: str, end_model: str):
         return self.graph.get_join_path(start_model, end_model)
 
-    def generate_graph(self, output_file: str = "entity_graph.png"):
+    def generate_graph(self, output_file: str = "entity_graph.html"):
         self.graph.visualize_graph(output_file=output_file)

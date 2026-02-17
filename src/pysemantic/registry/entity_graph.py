@@ -91,49 +91,81 @@ class EntityGraph:
 
         return join_chain
 
-    def visualize_graph(self, output_file: str = "entity_graph.png") -> None:
+    def visualize_graph(self, output_file: str = "entity_graph.html") -> None:
         """
-        Visualizes the entity graph and saves it to a file.
+        Visualizes the entity graph using PyVis for an interactive HTML experience.
 
         Args:
-            output_file: Path where the graph image will be saved.
+            output_file: Path where the interactive HTML will be saved.
         """
         try:
-            import matplotlib.pyplot as plt
+            from pyvis.network import Network
 
-            # Optimize Layout for Hierarchical/DAG structure
-            try:
-                pos = nx.nx_agraph.graphviz_layout(self.graph, prog="dot")
-            except (ImportError, ModuleNotFoundError):
-                # Fallback to shell layout
-                pos = nx.shell_layout(self.graph)
+            # Initialize the Network
+            # directed=True ensures arrows point from Foreign Key -> Primary Key
+            net = Network(height="800px", width="100%", bgcolor="#ffffff", font_color="#333333", directed=True)
 
-            plt.figure(figsize=(10, 8))
+            # 1. Add Nodes with Semantic Styling
+            for node in self.graph.nodes():
+                # Heuristic: Nodes with no incoming edges are likely Fact/Root tables
+                is_root = self.graph.in_degree(node) == 0
 
-            nx.draw(
-                self.graph,
-                pos,
-                with_labels=True,
-                node_color="lightblue",
-                node_size=2000,
-                font_size=10,
-                font_weight="bold",
-                arrowsize=20,
-                arrows=True,
-            )
+                net.add_node(
+                    node,
+                    label=node,
+                    title=f"Model: {node} ({'Root' if is_root else 'Dimension'})",
+                    color="#FF6B6B" if is_root else "#45B7D1",
+                    size=35 if is_root else 25,
+                    shape="dot",
+                    font={"size": 16, "face": "Arial", "weight": "bold"},
+                )
 
-            # Add edge labels (join keys)
-            edge_labels = nx.get_edge_attributes(self.graph, "join_condition")
-            # Format labels for readability
-            formatted_labels = {k: f"{v['left']} -> {v['right']}" for k, v in edge_labels.items()}
+            # 2. Add Edges with Join Condition Tooltips
+            edge_data = self.graph.edges(data=True)
+            for source, target, data in edge_data:
+                join_meta = data.get("join_condition", {})
+                join_label = f"{join_meta.get('left')} 🔗 {join_meta.get('right')}"
 
-            nx.draw_networkx_edge_labels(self.graph, pos, edge_labels=formatted_labels, font_color="red", font_size=8)
+                net.add_edge(
+                    source,
+                    target,
+                    label=join_label,
+                    title=f"Join Logic: {join_label}",  # Shown on hover
+                    color="#999999",
+                    width=2,
+                    arrowStrikethrough=False,
+                    smooth={"type": "curvedCW", "roundness": 0.2},  # Prevents overlapping straight lines
+                )
 
-            plt.title("Entity Graph")
-            plt.axis("off")
-            plt.tight_layout()
-            plt.savefig(output_file)
-            plt.close()
+            # 3. Configure Layout (Hierarchical vs Physics)
+            # We use hierarchical UD (Up-Down) to reflect the Snowflake/Star schema flow
+            net.set_options("""
+            var options = {
+              "layout": {
+                "hierarchical": {
+                  "enabled": true,
+                  "levelSeparation": 200,
+                  "nodeSpacing": 250,
+                  "treeSpacing": 250,
+                  "direction": "UD",
+                  "sortMethod": "directed"
+                }
+              },
+              "physics": {
+                "enabled": false
+              },
+              "interaction": {
+                "hover": true,
+                "navigationButtons": true,
+                "tooltipDelay": 100
+              }
+            }
+            """)
 
+            # 4. Save the Result
+            net.save_graph(output_file)
+
+        except ImportError as e:
+            raise RegistryError("PyVis is required for visualization. Run 'poetry add pyvis'.") from e
         except Exception as e:
             raise RegistryError(format_error("registry.entity_graph", "Failed to visualize graph", error=str(e))) from e

@@ -185,56 +185,24 @@ class DimensionValidation:
             )
 
     def _validate_dimension_name_collisions(self, dimension: Dimension) -> None:
-        """Rule 4: No naming collisions with entities, measures, or time columns.
+        """Rule 4: No naming collisions with measures.
 
-        Ensures that dimension names don't conflict with entity names, measure names,
-        or time column names. This prevents ambiguity when referencing fields in queries.
-
-        Example Bad: A dimension named "region" when "region" is already an entity,
-        measure, or time column.
-
-        Args:
-            dimension: The Dimension instance to validate
-
-        Raises:
-            DimensionValidationError: If dimension name conflicts with entity,
-            measure, or time column
+        Dimensions and Measures share the same namespace in the query interface
+        (you can't ask for 'revenue' and have the system guess if you meant the
+        dimension or the metric).
         """
-        entity_names = self._get_entity_names()
         measure_names = self._get_measure_names()
-        time_columns = set(self.model.time_columns)
-        primary_key = self.model.primary_key
 
-        if dimension.name in entity_names:
-            raise NamingCollisionError(
-                "Dimension name cannot conflict with entity names.",
-                model=self.model.name,
-                dimension=dimension.name,
-                conflict="entity",
-            )
-
+        # ONLY check for collision with Measures.
+        # We explicitly ALLOW collisions with PKs, Time Cols, and Entities
+        # because Dimensions are how those concepts are exposed to the user.
         if dimension.name in measure_names:
             raise NamingCollisionError(
-                "Dimension name cannot conflict with measure names.",
+                f"Ambiguous Name: '{dimension.name}' is defined as both a Dimension and a Measure.",
                 model=self.model.name,
                 dimension=dimension.name,
                 conflict="measure",
-            )
-
-        if dimension.name in time_columns:
-            raise NamingCollisionError(
-                "Dimension name cannot conflict with time column names.",
-                model=self.model.name,
-                dimension=dimension.name,
-                conflict="time_column",
-            )
-
-        if dimension.name == primary_key:
-            raise NamingCollisionError(
-                "Dimension name cannot conflict with the primary key.",
-                model=self.model.name,
-                dimension=dimension.name,
-                conflict="primary_key",
+                hint="Rename the measure to something distinct, e.g., 'total_revenue'.",
             )
 
     def validate(self) -> None:

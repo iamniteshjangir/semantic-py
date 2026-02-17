@@ -286,7 +286,7 @@ class TestEntityNamingCollisions:
 
     def test_entity_name_conflicts_with_dimension(self):
         primary = _entity("customer", EntityType.PRIMARY, column="pk")
-        dimension = Dimension("customer")
+        dimension = Dimension("customer", "col")
 
         with pytest.raises(NamingCollisionError):
             _model_with(

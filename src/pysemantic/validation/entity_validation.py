@@ -179,41 +179,22 @@ class EntityValidation:
             )
 
     def _validate_entity_name_collisions(self) -> None:
-        """Ensure entity names do not collide with other semantic objects."""
-        dimension_names = {dimension.name for dimension in self.model.dimensions}
+        """Ensure entity names do not collide with Measures.
+
+        We ALLOW collisions with Dimensions, Time Columns, and PKs because
+        Entities (Joins) and Dimensions (Attributes) are separate concepts
+        that often share the same name (e.g., 'customer').
+        """
         measure_names = {measure.name for measure in self.model.measures}
-        time_columns = set(self.model.time_columns)
-        primary_key = self.model.primary_key
 
         for entity in self.model.entities:
-            name = entity.name
-            if name in dimension_names:
+            if entity.name in measure_names:
                 raise NamingCollisionError(
-                    "Entity name cannot match a dimension name.",
+                    f"Ambiguous Name: '{entity.name}' is defined as both an Entity and a Measure.",
                     model=self.model.name,
-                    entity=name,
-                    conflict="dimension",
-                )
-            if name in measure_names:
-                raise NamingCollisionError(
-                    "Entity name cannot match a measure name.",
-                    model=self.model.name,
-                    entity=name,
+                    entity=entity.name,
                     conflict="measure",
-                )
-            if name in time_columns:
-                raise NamingCollisionError(
-                    "Entity name cannot match a time column name.",
-                    model=self.model.name,
-                    entity=name,
-                    conflict="time_column",
-                )
-            if name == primary_key:
-                raise NamingCollisionError(
-                    "Entity name cannot match the model's primary key.",
-                    model=self.model.name,
-                    entity=name,
-                    conflict="primary_key",
+                    hint="Rename the measure to something like 'total_revenue' or 'count_orders'.",
                 )
 
     def validate(self) -> None:

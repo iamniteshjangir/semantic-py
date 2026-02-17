@@ -3,7 +3,7 @@
 This package provides classes for building semantic data models, including:
 - Model: The central semantic model definition
 - Dimension: Categorical attributes for grouping and filtering
-- Measure: Aggregated metrics and calculations
+- Measure: Aggregated measures and calculations
 - Entity: Relationship definitions and key constraints
 
 Example:
