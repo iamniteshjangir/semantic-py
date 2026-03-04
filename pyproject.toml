@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "pysemantic"
-version = "0.1.0"
-description = "Open-source semantic layer for Databricks & Postgres"
+name = "pysemantic-layer"
+version = "0.1.1"
+description = "Python Open-source semantic layer for Data engineers"
 authors = ["Nitesh Jangir <nitesh8j@gmail.com>"]
 license = "MIT"
 readme = "README.md"
