@@ -22,6 +22,7 @@ class SemanticLayer:
         # Initalize and Load Registry
         # This scans the folder, validates models, and builds the Entity Graph.
         self.registry = Registry()
+        self.model_path = model_path
         self.registry.initialize(Path(model_path))
 
         # Initalize core Components
@@ -45,7 +46,8 @@ class SemanticLayer:
         Args:
             measures (list[str]): List of measures to aggregate.
             dimensions (list[str]): List of dimensions to group by.
-            filters (list[str]): List of filters to apply.
+            filters (list[dict | str]): List of filters. Strings parsed loosely.
+                Dicts safer: {'field': '..', 'op': '..', 'value': ..}
             order_by (list[str]): List of columns to order by.
             limit (int): Maximum number of rows to return.
 
@@ -77,7 +79,9 @@ class SemanticLayer:
         Reloads the registry from the file system.
         Useful for development loops (e.g. in Jupyter) without restarting the kernel.
         """
-        path = model_path if model_path else self.registry.source_path
+        path = model_path or self.model_path
+        if model_path:
+            self.model_path = model_path
 
         # Re-run the initialization flow
         self.registry = Registry()

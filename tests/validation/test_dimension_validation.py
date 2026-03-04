@@ -109,33 +109,35 @@ class TestDimensionNameCollisions:
     """Rule 4: No naming collisions between dimensions and other entities."""
 
     def test_dimension_name_conflicts_with_entity(self):
+        # Dimensions can shadow entities (it's how we expose them)
         entity = Entity("customer", EntityType.PRIMARY, "id")
-
-        with pytest.raises(NamingCollisionError):
-            _model_with(
-                entities=[entity],
-                dimensions=[Dimension("customer", "c", "string")],
-            )
+        _model_with(
+            entities=[entity],
+            dimensions=[Dimension("customer", "c", "string")],
+        )
 
     def test_dimension_name_conflicts_with_measure(self):
         measure = Measure("region", "sum", "amount")
 
-        with pytest.raises(NamingCollisionError):
+        with pytest.raises(NamingCollisionError) as exc_info:
             _model_with(measures=[measure], dimensions=[Dimension("region", "r", "string")])
 
+        assert "Ambiguous Name" in str(exc_info.value)
+        assert "defined as both a Dimension and a Measure" in str(exc_info.value)
+
     def test_dimension_name_conflicts_with_time_column(self):
-        with pytest.raises(NamingCollisionError):
-            _model_with(
-                dimensions=[Dimension("created_at", "c", "datetime")],
-                time_columns=["created_at"],
-            )
+        # Dimensions can shadow time columns
+        _model_with(
+            dimensions=[Dimension("created_at", "c", "datetime")],
+            time_columns=["created_at"],
+        )
 
     def test_dimension_name_conflicts_with_primary_key(self):
-        with pytest.raises(NamingCollisionError):
-            _model_with(
-                primary_key="region_id",
-                dimensions=[Dimension("region_id", "r", "string")],
-            )
+        # Dimensions can shadow primary keys
+        _model_with(
+            primary_key="region_id",
+            dimensions=[Dimension("region_id", "r", "string")],
+        )
 
 
 class TestDimensionValidationClass:

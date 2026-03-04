@@ -16,7 +16,7 @@ class Measure:
     Args:
         name: The name of the measure (e.g., 'total_sales', 'order_count')
         agg: The aggregation function to apply. Common values:
-             'sum', 'count', 'avg', 'average', 'min', 'max', 'distinct_count'
+             'sum', 'count', 'avg', 'average', 'min', 'max', 'count_distinct'
         column: The database column name to aggregate
 
     Attributes:

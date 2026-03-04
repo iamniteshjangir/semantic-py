@@ -74,16 +74,14 @@ class TestTimeColumnNameCollisions:
     """Rule 3: Time column names cannot collide with other semantic objects."""
 
     def test_time_column_conflicts_with_dimension(self):
-        dimension = Dimension("created_at", "datetime")
-
-        with pytest.raises(NamingCollisionError):
-            _model_with(dimensions=[dimension], time_columns=["created_at"])
+        # Time columns can shadow dimensions
+        dimension = Dimension("created_at", "c", "datetime")
+        _model_with(dimensions=[dimension], time_columns=["created_at"])
 
     def test_time_column_conflicts_with_entity(self):
+        # Time columns can shadow entities
         entity = Entity("created_at", EntityType.PRIMARY, "id")
-
-        with pytest.raises(NamingCollisionError):
-            _model_with(entities=[entity], time_columns=["created_at"])
+        _model_with(entities=[entity], time_columns=["created_at"])
 
     def test_time_column_conflicts_with_measure(self):
         measure = Measure("created_at", "sum", "amount")

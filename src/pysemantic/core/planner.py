@@ -68,18 +68,29 @@ class QueryPlanner:
         resolved_dimensions = []
         joins_needed = []
 
-        for dimension_name in ast.dimensions:
+        # Combine explicit dimensions and filter fields to find all required models
+        required_dimension_names = set(ast.dimensions)
+
+        for filter_obj in ast.filters:
+            try:
+                self.registry.get_model_by_metric(filter_obj.field)
+            except Exception:
+                required_dimension_names.add(filter_obj.field)
+
+        for dimension_name in required_dimension_names:
             # Find which model owns this dimension
             target_model = self._find_dimension_owner(dimension_name, root_model)
 
-            # Find Dimension object
-            try:
-                dim = next(d for d in target_model.dimensions if d.name == dimension_name)
-                resolved_dimensions.append(dim)
-            except StopIteration as e:
-                raise QueryPlanningError(
-                    summary=f"Dimension '{dimension_name}' definition missing in '{target_model.name}'."
-                ) from e
+            # If it was an explicitly requested dimension, save the object for the SELECT clause
+            if dimension_name in ast.dimensions:
+                # Find Dimension object
+                try:
+                    dim = next(d for d in target_model.dimensions if d.name == dimension_name)
+                    resolved_dimensions.append(dim)
+                except StopIteration as e:
+                    raise QueryPlanningError(
+                        summary=f"Dimension '{dimension_name}' definition missing in '{target_model.name}'."
+                    ) from e
 
             # Calculate Join Path if needed
             if target_model.name != root_model.name:
@@ -104,13 +115,62 @@ class QueryPlanner:
                     if join_node not in joins_needed:
                         joins_needed.append(join_node)
 
+        # 4. Validate Filters
+        # Ensure filter fields are valid dimensions or measures (or at least exist in the model graph)
+        # For V1, we simply check if they are resolvable dimensions or measures.
+        # Note: We don't strictly require them to be in the SELECT list, but they must be in the model.
+        # We can reuse _find_dimension_owner or check if it's a measure.
+
+        for filter_obj in ast.filters:
+            # Check if it's a measure
+            is_measure = False
+            try:
+                # Check if it is a metric in the registry
+                self.registry.get_model_by_metric(filter_obj.field)
+                is_measure = True
+            except Exception:
+                pass
+
+            if not is_measure:
+                # If not a measure, it must be a dimension
+                try:
+                    self._find_dimension_owner(filter_obj.field, root_model)
+                except Exception as e:
+                    raise QueryPlanningError(
+                        summary=f"Invalid filter field: '{filter_obj.field}'",
+                        details="Field must be a valid dimension or measure.",
+                    ) from e
+
+        # 5. Validate Order By
+        for order_field in ast.order_by:
+            # Order by field can be 'field' or 'field DESC'
+            clean_field = order_field.split()[0]
+
+            # Check if it's a measure
+            is_measure = False
+            try:
+                self.registry.get_model_by_metric(clean_field)
+                is_measure = True
+            except Exception:
+                pass
+
+            if not is_measure:
+                # If not a measure, it must be a dimension
+                try:
+                    self._find_dimension_owner(clean_field, root_model)
+                except Exception as e:
+                    raise QueryPlanningError(
+                        summary=f"Invalid order_by field: '{clean_field}'",
+                        details="Field must be a valid dimension or measure.",
+                    ) from e
+
         return QueryPlan(
             root_model_name=root_model.name,
             root_table_name=root_model.table,
             measures=resolved_measures,
             dimensions=resolved_dimensions,
             joins=joins_needed,
-            filters=[f.expression for f in ast.filters],
+            filters=ast.filters,
             order_by=ast.order_by,
             limit=ast.limit,
         )

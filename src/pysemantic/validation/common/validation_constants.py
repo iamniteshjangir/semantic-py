@@ -83,7 +83,7 @@ ALL_RESERVED_WORDS = RESERVED_WORDS | SQL_KEYWORDS
 VALID_IDENTIFIER_PATTERN = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
 
 # Valid aggregation functions for measures
-VALID_MEASURE_AGGS = ["sum", "avg", "mean", "count", "count_distinct", "min", "max"]
+VALID_MEASURE_AGGS = ["sum", "avg", "mean", "count", "distinct_count", "min", "max"]
 
 # Valid data types for dimensions
 VALID_DIMENSION_DTYPES = ["string", "int", "float", "boolean", "date", "datetime"]

@@ -197,5 +197,5 @@ class Registry:
     def get_join_path(self, start_model: str, end_model: str):
         return self.graph.get_join_path(start_model, end_model)
 
-    def generate_graph(self, output_file: str = "entity_graph.html"):
-        self.graph.visualize_graph(output_file=output_file)
+    def generate_graph(self, output_file: str = "entity_graph.html", dark_mode: bool = True) -> None:
+        self.graph.visualize_graph(output_file=output_file, dark_mode=dark_mode, models=self.models)

@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 
+from pysemantic.core.ast import Filter
 from pysemantic.modeling import Dimension, Measure
 
 
@@ -31,7 +32,7 @@ class QueryPlan:
     joins: list[JoinNode] = field(default_factory=list)
 
     # Post-Processing
-    filters: list[str] = field(default_factory=list)
+    filters: list[Filter] = field(default_factory=list)
     order_by: list[str] = field(default_factory=list)
     limit: int | None = None
 
