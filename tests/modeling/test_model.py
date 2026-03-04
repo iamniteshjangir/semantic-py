@@ -22,7 +22,7 @@ def test_model_initialization_defaults():
 
 def test_model_initialization_full():
     """Test Model initialization with all fields populated."""
-    dim = Dimension("dim1")
+    dim = Dimension("dim1", "col1")
     measure = Measure("m1", "sum", "col")
     entity = Entity("e1", EntityType.PRIMARY, "id")
 
@@ -50,7 +50,7 @@ def test_model_initialization_full():
 def test_model_repr():
     """Test string representation of Model."""
     entity = Entity("e", EntityType.PRIMARY, "id")
-    dim = Dimension("d")
+    dim = Dimension("d", "c")
     model = Model("m", "t", "id", entities=[entity], dimensions=[dim])
 
     repr_str = repr(model)

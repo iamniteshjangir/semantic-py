@@ -27,20 +27,22 @@ class Dimension:
         Dimension(name='product_category', dtype='string')
     """
 
-    def __init__(self, name: str, dtype: str = "string") -> None:
+    def __init__(self, name: str, column: str, dtype: str = "string") -> None:
         """Initialize a Dimension instance.
 
         Args:
             name: The name of the dimension
+            column: The physical column name in the database
             dtype: The data type of the dimension (default: 'string')
         """
         self.name = name
+        self.column = column
         self.dtype = dtype
 
     def __repr__(self) -> str:
         """Return a string representation of the Dimension.
 
         Returns:
-            A string representation showing the dimension's name and data type
+            A string representation showing the dimension's name, column, and data type
         """
-        return f"Dimension(name='{self.name}', dtype='{self.dtype}')"
+        return f"Dimension(name='{self.name}', column='{self.column}', dtype='{self.dtype}')"

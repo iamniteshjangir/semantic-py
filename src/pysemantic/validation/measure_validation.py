@@ -224,12 +224,16 @@ class MeasureValidation:
         """
         foreign_columns = self._get_foreign_entity_columns()
         if measure.column in foreign_columns:
+            if measure.agg == "distinct_count":
+                return
+
             raise MeasureValidationError(
                 "Measures cannot reference foreign-entity columns (prevents double-counting). "
                 f"Measure '{measure.name}' references foreign entity column: '{measure.column}'",
                 model=self.model.name,
                 measure=measure.name,
                 column=measure.column,
+                hint="Use distinct_count instead of count if you want to count distinct values.",
             )
 
     def _validate_derived_measure_references_valid_names(self, measure: Measure) -> None:

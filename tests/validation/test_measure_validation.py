@@ -331,7 +331,8 @@ class TestMeasureNameCollisions:
             _model_with(entities=[entity], dimensions=[dimension], measures=[measure])
 
         message = str(exc_info.value)
-        assert "Dimension name cannot conflict with measure names" in message
+        assert "Ambiguous Name" in message
+        assert "defined as both a Dimension and a Measure" in message
         assert "region" in message
 
     def test_measure_name_conflicts_with_entity_raises_error(self):
@@ -344,7 +345,8 @@ class TestMeasureNameCollisions:
             _model_with(entities=[primary, foreign], measures=[measure])
 
         message = str(exc_info.value)
-        assert "Entity name cannot match a measure name" in message
+        assert "Ambiguous Name" in message
+        assert "defined as both an Entity and a Measure" in message
         assert "order" in message
 
     def test_measure_name_conflicts_with_primary_entity_raises_error(self):
@@ -356,7 +358,8 @@ class TestMeasureNameCollisions:
             _model_with(entities=[primary], measures=[measure])
 
         message = str(exc_info.value)
-        assert "Entity name cannot match a measure name" in message
+        assert "Ambiguous Name" in message
+        assert "defined as both an Entity and a Measure" in message
         assert "customer" in message
 
     def test_measure_name_conflicts_with_time_column_raises_error(self):

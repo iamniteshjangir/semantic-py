@@ -14,6 +14,7 @@ from typing import Any
 
 __all__ = [
     "ConfigurationError",
+    "GeneratorError",
     "LogicalPlanError",
     "ModelingError",
     "NamingCollisionError",
@@ -50,6 +51,18 @@ class LogicalPlanError(PySemanticError):
 
 class ConfigurationError(PySemanticError):
     """Raised for configuration or environment related issues."""
+
+
+class ASTError(PySemanticError):
+    """Raised for AST related issues."""
+
+
+class PlannerError(PySemanticError):
+    """Raised for planner related issues."""
+
+
+class GeneratorError(PySemanticError):
+    """Raised for generator related issues."""
 
 
 class NamingCollisionError(ValidationError):

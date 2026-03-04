@@ -90,6 +90,6 @@ def test_visualize_graph_error_handling(empty_graph):
 
     # We provoke an error by trying to save to a non-existent directory
     with pytest.raises(RegistryError) as exc:
-        empty_graph.visualize_graph("/non_existent_folder/graph.png")
+        empty_graph.visualize_graph("/non_existent_folder/graph.html")
 
     assert "Failed to visualize graph" in str(exc.value)

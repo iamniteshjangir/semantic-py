@@ -285,23 +285,23 @@ class TestEntityNamingCollisions:
     """Tests for entity naming collision rules."""
 
     def test_entity_name_conflicts_with_dimension(self):
+        # Entities can share names with dimensions
         primary = _entity("customer", EntityType.PRIMARY, column="pk")
-        dimension = Dimension("customer")
+        dimension = Dimension("customer", "col")
 
-        with pytest.raises(NamingCollisionError):
-            _model_with(
-                entities=[primary],
-                dimensions=[dimension],
-                primary_key="pk",
-                name="sales",
-                table="sales_table",
-            )
+        _model_with(
+            entities=[primary],
+            dimensions=[dimension],
+            primary_key="pk",
+            name="sales",
+            table="sales_table",
+        )
 
     def test_entity_name_conflicts_with_measure(self):
         primary = _entity("revenue", EntityType.PRIMARY, column="pk")
         measure = Measure("revenue", "sum", "amount")
 
-        with pytest.raises(NamingCollisionError):
+        with pytest.raises(NamingCollisionError) as exc_info:
             _model_with(
                 entities=[primary],
                 measures=[measure],
@@ -310,28 +310,31 @@ class TestEntityNamingCollisions:
                 table="sales_table",
             )
 
+        assert "Ambiguous Name" in str(exc_info.value)
+        assert "defined as both an Entity and a Measure" in str(exc_info.value)
+
     def test_entity_name_conflicts_with_time_column(self):
+        # Entities can share names with time columns
         primary = _entity("created_at", EntityType.PRIMARY, column="pk")
 
-        with pytest.raises(NamingCollisionError):
-            _model_with(
-                entities=[primary],
-                time_columns=["created_at"],
-                primary_key="pk",
-                name="sales",
-                table="sales_table",
-            )
+        _model_with(
+            entities=[primary],
+            time_columns=["created_at"],
+            primary_key="pk",
+            name="sales",
+            table="sales_table",
+        )
 
     def test_entity_name_conflicts_with_primary_key(self):
+        # Entities can share names with primary keys
         primary = _entity("id", EntityType.PRIMARY, column="id")
 
-        with pytest.raises(NamingCollisionError):
-            _model_with(
-                entities=[primary],
-                primary_key="id",
-                name="sales",
-                table="sales_table",
-            )
+        _model_with(
+            entities=[primary],
+            primary_key="id",
+            name="sales",
+            table="sales_table",
+        )
 
 
 class TestComplexScenarios:
