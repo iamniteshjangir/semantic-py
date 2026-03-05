@@ -126,9 +126,22 @@ class QueryPlanner:
             is_measure = False
             try:
                 # Check if it is a metric in the registry
-                self.registry.get_model_by_metric(filter_obj.field)
+                measure_model = self.registry.get_model_by_metric(filter_obj.field)
                 is_measure = True
-            except Exception:
+
+                # Enforce Fan-Out protection for measures inside filters
+                if measure_model.name != root_model.name:
+                    raise QueryPlanningError(
+                        summary="Multi-Fact Query Error in Filter",
+                        details=(
+                            f"Cannot filter on metric '{filter_obj.field}' from '{measure_model.name}' "
+                            f"because the query root is '{root_model.name}'. V1 does not support cross-fact filtering."
+                        ),
+                    )
+            except Exception as e:
+                # Re-raise custom error if we just triggered it
+                if isinstance(e, QueryPlanningError):
+                    raise e
                 pass
 
             if not is_measure:

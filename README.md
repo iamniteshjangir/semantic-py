@@ -1,31 +1,89 @@
+<div align="center">
+
 # PySemantic
 
-**Python lightweight semantic layer for data engineers.**
+**A lightweight, graph-based Semantic Layer for Python and SQL.**
 
-PySemantic lets you define your data models as Python objects -- dimensions, measures, and entity relationships -- and generates correct, optimized SQL from simple metric queries. No more hand-writing joins, no more duplicated business logic across dashboards.
+
+Define metrics once. Generate SQL everywhere.
+
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Poetry](https://img.shields.io/badge/packaging-poetry-cyan.svg)](https://python-poetry.org/)
+[![Typer CLI](https://img.shields.io/badge/CLI-Typer-purple.svg)](https://typer.tiangolo.com/)
+
+---
+
+<video src="static/pysemantic_demo.mp4" width="100%" controls></video>
+
+</div>
+
+---
+
+## What is PySemantic?
+
+PySemantic lets you define your data models as Python objects -- dimensions, measures, and entity relationships -- and generates correct, optimized SQL from simple metric queries. No more hand-writing joins, no more duplicated business logic scattered across dashboards and notebooks.
+
+```python
+from pysemantic.client import SemanticLayer
+
+sl = SemanticLayer(model_path="./models")
+
+sql = sl.query(
+    measures=["total_order_price"],
+    dimensions=["customer_city"],
+    filters=[{"field": "customer_state", "operator": "IN", "value": "('SP', 'RJ')"}],
+    order_by=["total_order_price DESC"],
+    limit=10,
+)
+```
+
+```sql
+SELECT
+  customers.customer_city AS customer_city,
+  SUM(order_items.price) AS total_order_price
+FROM order_items
+LEFT JOIN orders ON order_items.order_id = orders.order_id
+LEFT JOIN customers ON orders.customer_id = customers.customer_id
+WHERE customers.customer_state IN ('SP', 'RJ')
+GROUP BY 1
+ORDER BY total_order_price DESC
+LIMIT 10
+```
+
+Joins, table references, WHERE vs HAVING -- all resolved automatically from your model definitions.
+
+---
 
 ## Why PySemantic?
 
-- **Single source of truth** -- Define a metric once, use it everywhere.
-- **Automatic join resolution** -- Declare entity relationships; PySemantic finds the join path.
-- **SQL injection safe** -- Structured filters with operator whitelisting and value escaping.
-- **Dialect support** -- Generates SQL for MySQL, Postgres, and more via [SQLGlot](https://github.com/tobymao/sqlglot).
-- **Zero infrastructure** -- Pure Python, no server, no database required at definition time.
-- **Interactive graph visualization** -- Inspect your entity graph in the browser.
+| | Feature | Description |
+|---|---|---|
+| **1** | **Single source of truth** | Define a metric once, use it everywhere |
+| **2** | **Automatic join resolution** | Declare entity relationships; PySemantic finds the path |
+| **3** | **SQL injection safe** | Structured filters with operator whitelisting and value escaping |
+| **4** | **Dialect support** | MySQL, Postgres, and more via [SQLGlot](https://github.com/tobymao/sqlglot) |
+| **5** | **Zero infrastructure** | Pure Python, no server required at definition time |
+| **6** | **Interactive Studio** | Explore your models, graph, and test queries in the browser |
+| **7** | **CLI powered by Typer** | Generate SQL and launch the Studio from the terminal |
+
+---
 
 ## Installation
 
 ```bash
-pip install pysemantic
+pip install pysemantic-layer
 ```
 
 Or with [Poetry](https://python-poetry.org/):
 
 ```bash
-poetry add pysemantic
+poetry add pysemantic-layer
 ```
 
-**Requires Python 3.11+**
+> **Requires Python 3.11+**
+
+---
 
 ## Quick Start
 
@@ -45,7 +103,7 @@ orders = Model(
         Dimension(name="order_status", column="order_status", dtype="string"),
     ],
     measures=[
-        Measure(name="total_number_of_orders", agg="count", column="order_id"),
+        Measure(name="total_orders", agg="count", column="order_id"),
         Measure(name="unique_customers", agg="distinct_count", column="customer_id"),
     ],
     entities=[
@@ -86,13 +144,12 @@ from pysemantic.client import SemanticLayer
 sl = SemanticLayer(model_path="./models")
 
 sql = sl.query(
-    measures=["total_number_of_orders"],
+    measures=["total_orders"],
     dimensions=["customer_city"],
     filters=[{"field": "customer_state", "operator": "=", "value": "SP"}],
-    order_by=["total_number_of_orders DESC"],
+    order_by=["total_orders DESC"],
     limit=10,
 )
-
 print(sql)
 ```
 
@@ -101,26 +158,93 @@ print(sql)
 ```sql
 SELECT
   customers.customer_city AS customer_city,
-  COUNT(orders.order_id) AS total_number_of_orders
+  COUNT(orders.order_id) AS total_orders
 FROM orders
 LEFT JOIN customers
   ON orders.customer_id = customers.customer_id
 WHERE
   customers.customer_state = 'SP'
-GROUP BY
-  1
-ORDER BY
-  total_number_of_orders DESC
+GROUP BY 1
+ORDER BY total_orders DESC
 LIMIT 10
 ```
 
-### 3. Visualize the entity graph
+---
 
-```python
-sl.generate_graph(output_file="entity_graph.html")
+## PySemantic Studio
+
+PySemantic ships with a built-in interactive web UI powered by Streamlit.
+
+```bash
+pysemantic studio ./models
 ```
 
-Opens an interactive HTML graph showing all models, their relationships, and metadata.
+![pysemantic studio](static/terminal_gifs/studio.gif)
+
+The Studio has three tabs:
+
+| Tab | What it does |
+|-----|-------------|
+| **Entity Graph** | Interactive visualization of your model relationships. Click nodes to isolate, fullscreen mode, drag & zoom. |
+| **Data Dictionary** | Browse all registered models with their measures, dimensions, entities, and column mappings. |
+| **Query Playground** | Pick measures & dimensions from dropdowns, add filters, click "Generate SQL" and see the output. Invalid combos show your error protections in action. |
+
+```bash
+# Custom port and light theme
+pysemantic studio ./models --port 8080 --light
+```
+
+---
+
+## CLI
+
+PySemantic includes a full command-line interface powered by [Typer](https://typer.tiangolo.com/).
+
+```bash
+pysemantic --help
+```
+
+### `pysemantic studio` -- Launch the web UI
+
+```bash
+pysemantic studio ./models
+pysemantic studio ./models --port 8080 --light
+```
+
+### `pysemantic query` -- Generate SQL from the terminal
+
+```bash
+# Single measure
+pysemantic query ./models -m total_orders -d customer_city --limit 10
+
+# Multiple measures (comma-separated or repeated)
+pysemantic query ./models -m "total_orders,unique_customers" -d order_status
+
+# With filters
+pysemantic query ./models \
+  -m total_order_price \
+  -d customer_state \
+  -f "customer_state IN ('SP', 'RJ')" \
+  -f "total_order_price > 100" \
+  --order-by "total_order_price DESC" \
+  --limit 5
+```
+
+![pysemantic query](static/terminal_gifs/query.gif)
+
+**Filter syntax:** `"field OPERATOR value"` -- supports `=`, `!=`, `>`, `<`, `>=`, `<=`, `IN`, `NOT IN`, `LIKE`, `IS`, `IS NOT`.
+
+### `pysemantic graph` -- Export entity graph
+
+```bash
+pysemantic graph ./models -o my_graph.html
+```
+
+![pysemantic graph](static/terminal_gifs/graph.gif)
+
+Generates a standalone interactive HTML file with your entity graph.
+
+---
 
 ## Core Concepts
 
@@ -140,9 +264,9 @@ Entities define how models connect. A **PRIMARY** entity declares ownership of a
 
 ```
 order_items  ──(FK: order)──>  orders  ──(FK: customer)──>  customers
-     │
-     ├──(FK: seller)──>  sellers
-     └──(FK: product)──>  products
+     |
+     |──(FK: seller)──>  sellers
+     |──(FK: product)──>  products
 ```
 
 When you query a measure from `order_items` with a dimension from `customers`, PySemantic automatically traverses the graph and generates the required `LEFT JOIN` chain.
@@ -160,38 +284,36 @@ When you query a measure from `order_items` with a dimension from `customers`, P
 
 ### Filters
 
-Filters can be passed as dictionaries or strings:
+Filters are passed as dictionaries:
 
 ```python
-# Dictionary (recommended)
-{"field": "customer_state", "operator": "IN", "value": ["SP", "RJ"]}
-{"field": "total_order_price", "operator": ">", "value": 1000}
+{"field": "customer_state", "operator": "IN", "value": "('SP', 'RJ')"}
+{"field": "total_order_price", "operator": ">", "value": "1000"}
 {"field": "order_status", "operator": "IS", "value": None}
-
-# String (simple cases)
-"order_status = 'delivered'"
 ```
 
 Dimension filters go to `WHERE`; measure filters go to `HAVING` -- automatically.
 
 **Supported operators:** `=`, `!=`, `>`, `<`, `>=`, `<=`, `IN`, `NOT IN`, `LIKE`, `ILIKE`, `IS`, `IS NOT`
 
+---
+
 ## Architecture
 
 ```
 User Query (measures, dimensions, filters)
-    │
-    ▼
-┌──────────┐     ┌──────────┐     ┌──────────┐
-│   AST    │────>│ Planner  │────>│Generator │───> SQL string
-│ (Parser) │     │(Resolver)│     │(Compiler)│
-└──────────┘     └──────────┘     └──────────┘
-                       │
-                 ┌─────┴─────┐
-                 │ Registry  │
-                 │  + Entity │
-                 │   Graph   │
-                 └───────────┘
+    |
+    v
++----------+     +----------+     +----------+
+|   AST    |---->| Planner  |---->|Generator |---> SQL string
+| (Parser) |     |(Resolver)|     |(Compiler)|
++----------+     +----------+     +----------+
+                      |
+                +-----+-----+
+                | Registry  |
+                | + Entity  |
+                |   Graph   |
+                +-----------+
 ```
 
 | Layer | Responsibility |
@@ -201,11 +323,15 @@ User Query (measures, dimensions, filters)
 | **Planner** | Resolves measures/dimensions to models, calculates join paths |
 | **Generator** | Translates the logical plan into dialect-specific SQL |
 
+---
+
 ## API Reference
 
 ### `SemanticLayer`
 
 ```python
+from pysemantic.client import SemanticLayer
+
 sl = SemanticLayer(model_path="./models")
 ```
 
@@ -221,29 +347,11 @@ sl = SemanticLayer(model_path="./models")
 |-----------|------|----------|-------------|
 | `measures` | `list[str]` | Yes | Metric names to aggregate |
 | `dimensions` | `list[str]` | No | Dimension names to group by |
-| `filters` | `list[dict \| str]` | No | Filter conditions |
+| `filters` | `list[dict]` | No | Filter conditions as `{field, operator, value}` dicts |
 | `order_by` | `list[str]` | No | Sort columns (append `DESC` for descending) |
 | `limit` | `int` | No | Maximum rows to return |
 
-## Development
-
-```bash
-git clone https://github.com/user/pysemantic.git
-cd pysemantic
-poetry install
-```
-
-Run tests:
-
-```bash
-poetry run pytest
-```
-
-Run linting:
-
-```bash
-poetry run pre-commit run --all-files
-```
+---
 
 ## License
 

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pysemantic-layer"
-version = "0.1.1"
+version = "0.1.2"
 description = "Python Open-source semantic layer for Data engineers"
 authors = ["Nitesh Jangir <nitesh8j@gmail.com>"]
 license = "MIT"
@@ -15,6 +15,12 @@ pytest = "^9.0.1"
 networkx = "^3.6.1"
 pyvis = "^0.3.2"
 sqlglot = "^28.10.1"
+streamlit = "^1.55.0"
+graphviz = "^0.21"
+typer = {extras = ["all"], version = "^0.24.1"}
+
+[tool.poetry.scripts]
+pysemantic = "pysemantic.cli:main"
 
 [tool.poetry.group.dev.dependencies]
 pytest-cov = "^4.0.0"
@@ -43,6 +49,9 @@ select = [
 ]
 ignore = ["E203", "E266"]
 fixable = ["ALL"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/pysemantic/cli.py" = ["B008"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["pysemantic"]

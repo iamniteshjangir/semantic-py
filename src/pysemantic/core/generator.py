@@ -278,7 +278,7 @@ class SQLGenerator:
                 continue
 
             # Reconstruct the physical SQL aggregate (e.g., SUM(price))
-            table_alias = plan.root_table_name
+            table_alias = measure_model.table
             if measure_obj.column in ("1", "*"):
                 expr = f"{measure_obj.column}"
             else:
