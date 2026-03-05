@@ -30,26 +30,37 @@ from pysemantic.client import SemanticLayer
 sl = SemanticLayer(model_path="./models")
 
 sql = sl.query(
-    measures=["total_order_price"],
-    dimensions=["customer_city"],
+    measures=["total_order_price", "total_number_of_distinct_orders"],
+    dimensions=["customer_state", "customer_city"],
     filters=[{"field": "customer_state", "operator": "IN", "value": "('SP', 'RJ')"}],
     order_by=["total_order_price DESC"],
     limit=10,
 )
 ```
-
 ```sql
 SELECT
   customers.customer_city AS customer_city,
-  SUM(order_items.price) AS total_order_price
+  customers.customer_state AS customer_state,
+  SUM(order_items.price) AS total_order_price,
+  COUNT(DISTINCT order_items.order_id) AS total_number_of_distinct_orders
 FROM order_items
-LEFT JOIN orders ON order_items.order_id = orders.order_id
-LEFT JOIN customers ON orders.customer_id = customers.customer_id
-WHERE customers.customer_state IN ('SP', 'RJ')
-GROUP BY 1
-ORDER BY total_order_price DESC
+LEFT JOIN orders
+  ON order_items.order_id = orders.order_id
+LEFT JOIN customers
+  ON orders.customer_id = customers.customer_id
+WHERE
+  customers.customer_state IN ('SP', 'RJ')
+GROUP BY
+  1,
+  2
+ORDER BY
+  total_order_price DESC
 LIMIT 10
 ```
+
+CLI Magic:
+
+![pysemantic query](static/terminal_gifs/query.gif)
 
 Joins, table references, WHERE vs HAVING -- all resolved automatically from your model definitions.
 
@@ -229,8 +240,6 @@ pysemantic query ./models \
   --order-by "total_order_price DESC" \
   --limit 5
 ```
-
-![pysemantic query](static/terminal_gifs/query.gif)
 
 **Filter syntax:** `"field OPERATOR value"` -- supports `=`, `!=`, `>`, `<`, `>=`, `<=`, `IN`, `NOT IN`, `LIKE`, `IS`, `IS NOT`.
 
