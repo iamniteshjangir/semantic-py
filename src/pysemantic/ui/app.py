@@ -230,10 +230,7 @@ def render_data_dictionary(sl: SemanticLayer):
             with col1:
                 st.markdown("##### Measures")
                 if model.measures:
-                    rows = [
-                        {"Name": m.name, "Agg": m.agg.upper(), "Column": m.column}
-                        for m in model.measures
-                    ]
+                    rows = [{"Name": m.name, "Agg": m.agg.upper(), "Column": m.column} for m in model.measures]
                     st.dataframe(rows, use_container_width=True, hide_index=True)
                 else:
                     st.caption("No measures defined.")
@@ -241,10 +238,7 @@ def render_data_dictionary(sl: SemanticLayer):
             with col2:
                 st.markdown("##### Dimensions")
                 if model.dimensions:
-                    rows = [
-                        {"Name": d.name, "Column": d.column, "Type": d.dtype}
-                        for d in model.dimensions
-                    ]
+                    rows = [{"Name": d.name, "Column": d.column, "Type": d.dtype} for d in model.dimensions]
                     st.dataframe(rows, use_container_width=True, hide_index=True)
                 else:
                     st.caption("No dimensions defined.")
@@ -294,11 +288,7 @@ def render_query_playground(sl: SemanticLayer):
                 field_idx = all_fields.index(f["field"]) if f["field"] in all_fields else 0
                 f["field"] = st.selectbox("Field", all_fields, key=f"ff_{i}", index=field_idx)
             with fc2:
-                op_idx = (
-                    FILTER_OPERATORS.index(f["operator"])
-                    if f["operator"] in FILTER_OPERATORS
-                    else 0
-                )
+                op_idx = FILTER_OPERATORS.index(f["operator"]) if f["operator"] in FILTER_OPERATORS else 0
                 f["operator"] = st.selectbox("Op", FILTER_OPERATORS, key=f"fo_{i}", index=op_idx)
             with fc3:
                 raw = st.text_input(
@@ -327,9 +317,7 @@ def render_query_playground(sl: SemanticLayer):
 
         order_col, limit_col = st.columns(2)
         with order_col:
-            order_by_input = st.text_input(
-                "Order By", placeholder="e.g. total_order_price DESC"
-            )
+            order_by_input = st.text_input("Order By", placeholder="e.g. total_order_price DESC")
         with limit_col:
             limit_val = st.number_input("Limit", min_value=0, value=0, step=1)
 
@@ -351,11 +339,7 @@ def render_query_playground(sl: SemanticLayer):
                 for f in st.session_state.filters
             ]
 
-            order_by = (
-                [o.strip() for o in order_by_input.split(",") if o.strip()]
-                if order_by_input
-                else None
-            )
+            order_by = [o.strip() for o in order_by_input.split(",") if o.strip()] if order_by_input else None
             limit = limit_val if limit_val > 0 else None
 
             try:
@@ -392,11 +376,13 @@ def main():
 
     sl = load_semantic_layer()
 
-    tab_graph, tab_dict, tab_playground = st.tabs([
-        "🕸️  Entity Graph",
-        "📖  Data Dictionary",
-        "🧪  Query Playground",
-    ])
+    tab_graph, tab_dict, tab_playground = st.tabs(
+        [
+            "🕸️  Entity Graph",
+            "📖  Data Dictionary",
+            "🧪  Query Playground",
+        ]
+    )
 
     with tab_graph:
         render_entity_graph(sl)

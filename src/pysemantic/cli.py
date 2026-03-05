@@ -33,7 +33,18 @@ def _split_csv(values: list[str] | None) -> list[str] | None:
 
 
 _OPERATORS = [
-    "NOT IN", "IS NOT", "!=", ">=", "<=", "ILIKE", "LIKE", "IN", "IS", "=", ">", "<",
+    "NOT IN",
+    "IS NOT",
+    "!=",
+    ">=",
+    "<=",
+    "ILIKE",
+    "LIKE",
+    "IN",
+    "IS",
+    "=",
+    ">",
+    "<",
 ]
 
 
@@ -54,7 +65,7 @@ def _parse_filter(raw: str) -> dict:
             continue
 
         field = raw[:idx].strip()
-        value_str = raw[idx + len(padded):].strip()
+        value_str = raw[idx + len(padded) :].strip()
 
         if not field:
             continue
@@ -66,8 +77,7 @@ def _parse_filter(raw: str) -> dict:
         return {"field": field, "operator": op, "value": value}
 
     raise typer.BadParameter(
-        f"Could not parse filter: '{raw}'. "
-        f"Expected format: 'field OPERATOR value' (e.g. 'order_status = delivered')"
+        f"Could not parse filter: '{raw}'. Expected format: 'field OPERATOR value' (e.g. 'order_status = delivered')"
     )
 
 
@@ -127,14 +137,14 @@ def query(
         ...,
         help="Path to the directory containing your semantic model definitions.",
     ),
-    measures: list[str] = typer.Option(
-        ..., "--measure", "-m", help="Measure(s) — repeat or comma-separate."
-    ),
+    measures: list[str] = typer.Option(..., "--measure", "-m", help="Measure(s) — repeat or comma-separate."),
     dimensions: list[str] | None = typer.Option(
         None, "--dimension", "-d", help="Dimension(s) — repeat or comma-separate."
     ),
     filters: list[str] | None = typer.Option(
-        None, "--filter", "-f",
+        None,
+        "--filter",
+        "-f",
         help="Filter as 'field OP value', e.g. 'order_status = delivered'. Repeatable.",
     ),
     order_by: list[str] | None = typer.Option(
@@ -181,9 +191,7 @@ def graph(
         ...,
         help="Path to the directory containing your semantic model definitions.",
     ),
-    output: str = typer.Option(
-        "entity_graph.html", "--output", "-o", help="Output HTML file path."
-    ),
+    output: str = typer.Option("entity_graph.html", "--output", "-o", help="Output HTML file path."),
 ):
     """Generate an interactive entity-graph HTML file."""
     from pysemantic.client import SemanticLayer
