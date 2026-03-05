@@ -14,7 +14,7 @@ Define metrics once. Generate SQL everywhere.
 
 ---
 
-<video src="static/pysemantic_demo.mp4" width="100%" controls></video>
+<video src="https://github.com/user-attachments/assets/99704771-497e-45a8-9df0-07a100f7dc84" width="100%" controls>Your browser does not support the video tag. <a href="https://github.com/user-attachments/assets/99704771-497e-45a8-9df0-07a100f7dc84">Watch the demo here</a>.</video>
 
 </div>
 
