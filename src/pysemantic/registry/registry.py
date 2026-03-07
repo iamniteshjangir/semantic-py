@@ -48,6 +48,22 @@ class Registry:
 
         self._source_paths.append(str(resolved_source))
 
+    def initialize_from_models(self, models: list[Model]) -> None:
+        """
+        Initialize the registry from an explicit list of Model objects.
+
+        Args:
+            models: List of pre-constructed Model instances.
+        """
+        self._reset_state()
+        self._source_paths = []
+
+        loader = ModuleLoader.from_models(models)
+
+        self._validate_models(loader.models, loader.entities, loader.dimensions, loader.measures)
+        self._register_models(loader.models)
+        self._build_entity_graph()
+
     def _reset_state(self) -> None:
         self.models: dict[str, Model] = {}
         # Keeping these for now, we can remove them later, because models dict is enough

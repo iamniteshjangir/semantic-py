@@ -37,6 +37,29 @@ class ModuleLoader:
             module = self._import_module(file_path)
             self._collect_models(module)
 
+    @classmethod
+    def from_models(cls, models: list[Model]) -> ModuleLoader:
+        """Build a loader pre-populated with an explicit list of Model objects."""
+        instance = object.__new__(cls)
+        instance.source_path = None
+        instance._reset_results()
+        for model in models:
+            if not isinstance(model, Model):
+                raise ModuleLoaderError(
+                    "Expected a Model instance",
+                    received=type(model).__name__,
+                )
+            if model.name in instance.models:
+                raise ModuleLoaderError("Duplicate model detected", model=model.name)
+            instance.models[model.name] = model
+            for entity in model.entities or []:
+                instance.entities[f"{model.name}.{entity.name}"] = entity
+            for dimension in model.dimensions or []:
+                instance.dimensions[f"{model.name}.{dimension.name}"] = dimension
+            for measure in model.measures or []:
+                instance.measures[f"{model.name}.{measure.name}"] = measure
+        return instance
+
     def _reset_results(self) -> None:
         self.models: dict[str, Model] = {}
         self.entities: dict[str, Entity] = {}
