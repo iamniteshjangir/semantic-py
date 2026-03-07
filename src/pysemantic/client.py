@@ -30,9 +30,7 @@ class SemanticLayer:
         if model_path and models:
             raise ValueError("Provide either 'model_path' or 'models', not both.")
         if not model_path and not models:
-            raise ValueError(
-                "You must provide either 'model_path' (directory) or 'models' (list of Model objects)."
-            )
+            raise ValueError("You must provide either 'model_path' (directory) or 'models' (list of Model objects).")
 
         self.model_path = model_path
         self._models_list = models
