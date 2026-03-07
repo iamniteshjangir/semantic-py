@@ -28,7 +28,7 @@ class Registry:
         Initialize the registry by loading the raw metadata from the source path.
 
         Args:
-            source_path: Directory or .py file that contains semantic model definitions.
+            source_path: Directory that contains semantic model definitions.
         """
         resolved_source = Path(source_path).resolve()
         self._reset_state()
