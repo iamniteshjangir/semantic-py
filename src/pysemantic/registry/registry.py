@@ -28,7 +28,7 @@ class Registry:
         Initialize the registry by loading the raw metadata from the source path.
 
         Args:
-            source_path: Directory that contains semantic model definitions.
+            source_path: Directory or .py file that contains semantic model definitions.
         """
         resolved_source = Path(source_path).resolve()
         self._reset_state()
@@ -47,6 +47,22 @@ class Registry:
         self._build_entity_graph()
 
         self._source_paths.append(str(resolved_source))
+
+    def initialize_from_models(self, models: list[Model]) -> None:
+        """
+        Initialize the registry from an explicit list of Model objects.
+
+        Args:
+            models: List of pre-constructed Model instances.
+        """
+        self._reset_state()
+        self._source_paths = []
+
+        loader = ModuleLoader.from_models(models)
+
+        self._validate_models(loader.models, loader.entities, loader.dimensions, loader.measures)
+        self._register_models(loader.models)
+        self._build_entity_graph()
 
     def _reset_state(self) -> None:
         self.models: dict[str, Model] = {}

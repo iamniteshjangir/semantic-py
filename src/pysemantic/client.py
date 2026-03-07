@@ -1,36 +1,53 @@
+from __future__ import annotations
+
 from pathlib import Path
 
 from pysemantic.core.ast import QueryAST
 from pysemantic.core.generator import SQLGenerator
 from pysemantic.core.planner import QueryPlanner
+from pysemantic.modeling import Model
 from pysemantic.registry import Registry
 
 
 class SemanticLayer:
     """
     The main entry point for the PySemantic library.
-    Integrates the Registry, Planner, and Generator to execute queries.
+
+    Supports two initialization styles:
+
+        # 1. Directory of model files
+        sl = SemanticLayer(model_path="./models")
+
+        # 2. Explicit list of Model objects
+        sl = SemanticLayer(models=[orders, customers])
     """
 
-    def __init__(self, model_path: str):
-        """
-        Initialize the Semantic Layer.
+    def __init__(
+        self,
+        model_path: str | None = None,
+        models: list[Model] | None = None,
+    ):
+        if model_path and models:
+            raise ValueError("Provide either 'model_path' or 'models', not both.")
+        if not model_path and not models:
+            raise ValueError(
+                "You must provide either 'model_path' (directory) or 'models' (list of Model objects)."
+            )
 
-        Args:
-            model_path (str): Path to the directory constaining model definations.
-        """
-        # Initalize and Load Registry
-        # This scans the folder, validates models, and builds the Entity Graph.
-        self.registry = Registry()
         self.model_path = model_path
-        self.registry.initialize(Path(model_path))
+        self._models_list = models
 
-        # Initalize core Components
-        # The Planner needs the Registry to find objects and calculate paths.
+        self.registry = Registry()
+        self._init_registry()
+
         self.planner = QueryPlanner(self.registry)
-
-        # The Generator needs the Registry to look up Entity definitions for JOIN ON clauses.
         self.generator = SQLGenerator(self.registry)
+
+    def _init_registry(self) -> None:
+        if self._models_list is not None:
+            self.registry.initialize_from_models(self._models_list)
+        else:
+            self.registry.initialize(Path(self.model_path))
 
     def query(
         self,
@@ -44,18 +61,15 @@ class SemanticLayer:
         Generates a SQL query based on the user's request.
 
         Args:
-            measures (list[str]): List of measures to aggregate.
-            dimensions (list[str]): List of dimensions to group by.
-            filters (list[dict | str]): List of filters. Strings parsed loosely.
-                Dicts safer: {'field': '..', 'op': '..', 'value': ..}
-            order_by (list[str]): List of columns to order by.
-            limit (int): Maximum number of rows to return.
+            measures: List of measures to aggregate.
+            dimensions: List of dimensions to group by.
+            filters: List of filters. Dicts safer: {'field': '..', 'op': '..', 'value': ..}
+            order_by: List of columns to order by.
+            limit: Maximum number of rows to return.
 
         Returns:
-            str: Generated SQL query.
+            Generated SQL query string.
         """
-        # Parse Request into AST (Abstract Syntax Tree)
-        # Captures "What the user wants" (Symbols)
         ast = QueryAST.from_request(
             measures=measures,
             dimensions=dimensions,
@@ -64,30 +78,26 @@ class SemanticLayer:
             limit=limit,
         )
 
-        # Plan the Query (Logical Plan / DST)
-        # Converts symobols to objects, identifies the Root Table, and calculates Join Paths.
         plan = self.planner.plan(ast)
-
-        # Generate the SQL Query (Physical Plan)
-        # Translates the logical Plan into valid SQL string.
         sql = self.generator.generate(plan)
 
         return sql
 
-    def reload(self, model_path: str | None = None) -> None:
+    def reload(self, model_path: str | None = None, models: list[Model] | None = None) -> None:
         """
-        Reloads the registry from the file system.
+        Reloads the registry.
         Useful for development loops (e.g. in Jupyter) without restarting the kernel.
         """
-        path = model_path or self.model_path
         if model_path:
             self.model_path = model_path
+            self._models_list = None
+        if models:
+            self._models_list = models
+            self.model_path = None
 
-        # Re-run the initialization flow
         self.registry = Registry()
-        self.registry.initialize(Path(path))
+        self._init_registry()
 
-        # Re-wire the dependencies
         self.planner = QueryPlanner(self.registry)
         self.generator = SQLGenerator(self.registry)
 
@@ -96,6 +106,6 @@ class SemanticLayer:
         Generates a visualization of the entity graph.
 
         Args:
-            output_file (str): The path to save the generated graph image.
+            output_file: The path to save the generated graph HTML.
         """
         self.registry.generate_graph(output_file=output_file)
