@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from sqlglot.dialects.dialect import Dialect
+
 from pysemantic.core.ast import QueryAST
 from pysemantic.core.generator import SQLGenerator
 from pysemantic.core.planner import QueryPlanner
@@ -26,11 +28,16 @@ class SemanticLayer:
         self,
         model_path: str | None = None,
         models: list[Model] | None = None,
+        dialect: str = "mysql",
     ):
         if model_path and models:
             raise ValueError("Provide either 'model_path' or 'models', not both.")
         if not model_path and not models:
             raise ValueError("You must provide either 'model_path' (directory) or 'models' (list of Model objects).")
+
+        supported_dialects = list(Dialect.classes.keys())
+        if dialect not in supported_dialects:
+            raise ValueError(f"Unsupported dialect: {dialect}. Supported dialects: {supported_dialects}")
 
         self.model_path = model_path
         self._models_list = models
@@ -39,7 +46,7 @@ class SemanticLayer:
         self._init_registry()
 
         self.planner = QueryPlanner(self.registry)
-        self.generator = SQLGenerator(self.registry)
+        self.generator = SQLGenerator(self.registry, dialect=dialect)
 
     def _init_registry(self) -> None:
         if self._models_list is not None:
