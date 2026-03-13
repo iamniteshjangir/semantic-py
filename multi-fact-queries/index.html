@@ -1,0 +1,1952 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A lightweight, graph-based Semantic Layer for Python and SQL.">
+      
+      
+        <meta name="author" content="Nitesh Jangir">
+      
+      
+        <link rel="canonical" href="https://pysemantic.com/multi-fact-queries/">
+      
+      
+        <link rel="prev" href="../cli-studio/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.5">
+    
+    
+      
+        <title>Multi-Fact Queries - PySemantic</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#multi-fact-queries" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="PySemantic" class="md-header__button md-logo" aria-label="PySemantic" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18s-.41-.06-.57-.18l-7.9-4.44A.99.99 0 0 1 3 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18s.41.06.57.18l7.9 4.44c.32.17.53.5.53.88zM12 4.15 6.04 7.5 12 10.85l5.96-3.35zM5 15.91l6 3.38v-6.71L5 9.21zm14 0v-6.7l-6 3.37v6.71z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            PySemantic
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Multi-Fact Queries
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/iamniteshjangir/semantic-py/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    iamniteshjangir/semantic-py
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../getting-started/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Getting Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../cli-studio/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  CLI & Studio
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Multi-Fact Queries
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="PySemantic" class="md-nav__button md-logo" aria-label="PySemantic" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18s-.41-.06-.57-.18l-7.9-4.44A.99.99 0 0 1 3 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18s.41.06.57.18l7.9 4.44c.32.17.53.5.53.88zM12 4.15 6.04 7.5 12 10.85l5.96-3.35zM5 15.91l6 3.38v-6.71L5 9.21zm14 0v-6.7l-6 3.37v6.71z"/></svg>
+
+    </a>
+    PySemantic
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/iamniteshjangir/semantic-py/" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    iamniteshjangir/semantic-py
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli-studio/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI & Studio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-Fact Queries
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-Fact Queries
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem-chasm-trap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem: Chasm Trap
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution-cte-based-pre-aggregation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution: CTE-Based Pre-Aggregation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-pysemantic-handles-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How PySemantic Handles It
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#conformed-dimensions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conformed Dimensions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#with-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        With Filters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grand-total-no-dimensions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grand Total (No Dimensions)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-fact-tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3+ Fact Tables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works-internally" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Works Internally
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-structures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Structures
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Structures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#shareddimensionkey" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SharedDimensionKey
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#subplan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SubPlan
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multifactplan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MultiFactPlan
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#intelligent-filter-pushdown" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Intelligent Filter Pushdown
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Intelligent Filter Pushdown">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#conformed-mode-dimensions-present" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conformed Mode (dimensions present)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grand-total-mode-no-dimensions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grand Total Mode (no dimensions)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#measure-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Measure Filters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error Handling
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Error Handling">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#nonconformeddimensionerror-inherits-from-multifactplanningerror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NonConformedDimensionError (inherits from MultiFactPlanningError)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multifactplanningerror-inherits-from-plannererror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MultiFactPlanningError (inherits from PlannerError)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multifactgenerationerror-inherits-from-generatorerror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MultiFactGenerationError (inherits from GeneratorError)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#constraints-and-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Constraints and Limitations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Constraints and Limitations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#conformed-dimension-requirement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conformed Dimension Requirement
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dialect-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dialect Support
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#impact-on-existing-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Impact on Existing System
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-problem-chasm-trap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Problem: Chasm Trap
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-solution-cte-based-pre-aggregation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Solution: CTE-Based Pre-Aggregation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-pysemantic-handles-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How PySemantic Handles It
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#conformed-dimensions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conformed Dimensions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#with-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        With Filters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grand-total-no-dimensions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grand Total (No Dimensions)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-fact-tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3+ Fact Tables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works-internally" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Works Internally
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-structures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Structures
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Structures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#shareddimensionkey" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SharedDimensionKey
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#subplan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SubPlan
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multifactplan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MultiFactPlan
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#intelligent-filter-pushdown" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Intelligent Filter Pushdown
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Intelligent Filter Pushdown">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#conformed-mode-dimensions-present" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conformed Mode (dimensions present)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grand-total-mode-no-dimensions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grand Total Mode (no dimensions)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#measure-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Measure Filters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error Handling
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Error Handling">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#nonconformeddimensionerror-inherits-from-multifactplanningerror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NonConformedDimensionError (inherits from MultiFactPlanningError)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multifactplanningerror-inherits-from-plannererror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MultiFactPlanningError (inherits from PlannerError)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multifactgenerationerror-inherits-from-generatorerror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MultiFactGenerationError (inherits from GeneratorError)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#constraints-and-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Constraints and Limitations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Constraints and Limitations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#conformed-dimension-requirement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conformed Dimension Requirement
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dialect-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dialect Support
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#impact-on-existing-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Impact on Existing System
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="multi-fact-queries">Multi-Fact Queries<a class="headerlink" href="#multi-fact-queries" title="Permanent link">&para;</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>Multi-fact queries allow you to combine measures from <strong>multiple fact tables</strong> in a single query. PySemantic automatically detects when requested measures span different models and generates CTE-based SQL that avoids the <strong>chasm trap</strong> — a common pitfall where naive joins between fact tables produce inflated aggregates due to fan-out.</p>
+<blockquote>
+<p><strong>Conformed-Only Rule</strong>: Multi-fact queries require all dimensions to be <strong>conformed</strong> — reachable from every fact table in the query. Non-conformed dimensions raise <code>NonConformedDimensionError</code>. The only exception is <strong>Grand Total</strong> queries (no dimensions), which produce scalar aggregates via <code>CROSS JOIN</code>.</p>
+</blockquote>
+<div class="gif-container">
+<p><img alt="multi-fact query demo" src="../assets/gifs/multi-fact-queries.gif" /></p>
+</div>
+<h3 id="the-problem-chasm-trap">The Problem: Chasm Trap<a class="headerlink" href="#the-problem-chasm-trap" title="Permanent link">&para;</a></h3>
+<p>Consider two fact tables — <code>orders</code> and <code>web_events</code> — both connected to a shared <code>customers</code> dimension:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>orders ──FK──▶ customers ◀──FK── web_events
+</span></code></pre></div>
+<p>A naive join produces a Cartesian product between the two fact tables for each customer:</p>
+<div class="language-sql highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1">-- WRONG: Chasm trap — aggregates are inflated</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">SELECT</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="k">c</span><span class="p">.</span><span class="n">name</span><span class="p">,</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="k">SUM</span><span class="p">(</span><span class="n">o</span><span class="p">.</span><span class="n">revenue</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">total_revenue</span><span class="p">,</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="k">COUNT</span><span class="p">(</span><span class="n">w</span><span class="p">.</span><span class="n">id</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">total_clicks</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="k">FROM</span><span class="w"> </span><span class="n">customers</span><span class="w"> </span><span class="k">c</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="k">LEFT</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="n">orders</span><span class="w"> </span><span class="n">o</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="k">c</span><span class="p">.</span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">o</span><span class="p">.</span><span class="n">customer_id</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="k">LEFT</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="n">web_events</span><span class="w"> </span><span class="n">w</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="k">c</span><span class="p">.</span><span class="n">id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">w</span><span class="p">.</span><span class="n">customer_id</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="k">c</span><span class="p">.</span><span class="n">name</span><span class="p">;</span>
+</span></code></pre></div>
+<p>If a customer has 3 orders and 5 web events, the join produces 15 rows per customer. <code>SUM(revenue)</code> is inflated 5x and <code>COUNT(clicks)</code> is inflated 3x.</p>
+<h3 id="the-solution-cte-based-pre-aggregation">The Solution: CTE-Based Pre-Aggregation<a class="headerlink" href="#the-solution-cte-based-pre-aggregation" title="Permanent link">&para;</a></h3>
+<p>PySemantic solves this by pre-aggregating each fact table independently in a CTE, then joining the results on the shared conformed dimension:</p>
+<div class="language-sql highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">WITH</span><span class="w"> </span><span class="n">cte_orders</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="k">SELECT</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="n">customers</span><span class="p">.</span><span class="n">id</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">__pk_customers</span><span class="p">,</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="n">customers</span><span class="p">.</span><span class="n">name</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">customer_name</span><span class="p">,</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="k">SUM</span><span class="p">(</span><span class="n">orders</span><span class="p">.</span><span class="n">revenue</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">total_revenue</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="k">FROM</span><span class="w"> </span><span class="n">orders</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="k">LEFT</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="n">customers</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">orders</span><span class="p">.</span><span class="n">customer_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">customers</span><span class="p">.</span><span class="n">id</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="p">),</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="n">cte_web_events</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">  </span><span class="k">SELECT</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">    </span><span class="n">customers</span><span class="p">.</span><span class="n">id</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">__pk_customers</span><span class="p">,</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">    </span><span class="n">customers</span><span class="p">.</span><span class="n">name</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">customer_name</span><span class="p">,</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">    </span><span class="k">COUNT</span><span class="p">(</span><span class="n">web_events</span><span class="p">.</span><span class="n">id</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">total_clicks</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">  </span><span class="k">FROM</span><span class="w"> </span><span class="n">web_events</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">  </span><span class="k">LEFT</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="n">customers</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">web_events</span><span class="p">.</span><span class="n">customer_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">customers</span><span class="p">.</span><span class="n">id</span>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">  </span><span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="p">)</span>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="k">SELECT</span>
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">  </span><span class="k">COALESCE</span><span class="p">(</span><span class="n">cte_orders</span><span class="p">.</span><span class="n">customer_name</span><span class="p">,</span><span class="w"> </span><span class="n">cte_web_events</span><span class="p">.</span><span class="n">customer_name</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">customer_name</span><span class="p">,</span>
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">  </span><span class="n">cte_orders</span><span class="p">.</span><span class="n">total_revenue</span><span class="p">,</span>
+</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="w">  </span><span class="n">cte_web_events</span><span class="p">.</span><span class="n">total_clicks</span>
+</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="k">FROM</span><span class="w"> </span><span class="n">cte_orders</span>
+</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="k">FULL</span><span class="w"> </span><span class="k">OUTER</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="n">cte_web_events</span>
+</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="w">  </span><span class="k">ON</span><span class="w"> </span><span class="n">cte_orders</span><span class="p">.</span><span class="n">__pk_customers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cte_web_events</span><span class="p">.</span><span class="n">__pk_customers</span><span class="p">;</span>
+</span></code></pre></div>
+<p>Each CTE aggregates at the correct grain. The <code>FULL OUTER JOIN</code> ensures customers that appear in only one fact table are still included.</p>
+<h3 id="how-pysemantic-handles-it">How PySemantic Handles It<a class="headerlink" href="#how-pysemantic-handles-it" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Detection</strong> — When you pass measures from more than one model, the planner switches to the multi-fact path instead of a single flat query.</li>
+<li><strong>Conformed dimensions</strong> — Every dimension you use (in SELECT or filters) must be reachable from <em>every</em> fact table in the query; otherwise PySemantic raises <code>NonConformedDimensionError</code>.</li>
+<li><strong>CTE per fact</strong> — Each fact table becomes one CTE that pre-aggregates its measures and joins to the shared dimension(s). No fact table is joined directly to another fact table, so there is no fan-out.</li>
+<li><strong>Outer join</strong> — The final query joins the CTEs on the shared dimension (by primary key or by dimension values) using <code>FULL OUTER JOIN</code>, so rows that exist in only one fact are still returned.</li>
+<li><strong>Intelligent Filter Pushdown</strong> — Filters are automatically routed to the right place: conformed dimension filters are pushed into <em>every</em> CTE's <code>WHERE</code> clause; non-conformed dimension filters (Grand Total only) are pushed into <em>only</em> the CTEs that can reach them; measure filters are applied to the outer query after CTE aggregation. No manual filter routing required.</li>
+<li><strong>Grand Total exception</strong> — If you request no dimensions at all, you get one row per CTE and a <code>CROSS JOIN</code>; non-conformed dimension filters are then allowed and applied only where reachable.</li>
+</ol>
+<p>The same <code>query()</code> API is used for both single-fact and multi-fact; no extra configuration is required.</p>
+<h3 id="conformed-dimensions">Conformed Dimensions<a class="headerlink" href="#conformed-dimensions" title="Permanent link">&para;</a></h3>
+<p>A <strong>conformed dimension</strong> is one that is reachable from <em>every</em> fact table in the query via the entity graph. Only conformed dimensions may appear in the SELECT or filter clauses of a multi-fact query. This ensures all CTEs group and filter at the same grain, producing correct aggregates.</p>
+<p>PySemantic automatically detects how to reach each dimension from each fact table. If a model provides both measures and dimensions (e.g. <code>customers</code> has <code>total_customers</code> <em>and</em> <code>customer_state</code>), PySemantic handles this transparently — the model's own CTE uses local dimensions directly, while other CTEs join to it through the entity graph.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">sl</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    <span class="n">measures</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;total_order_price&quot;</span><span class="p">,</span> <span class="s2">&quot;total_customers&quot;</span><span class="p">],</span>  <span class="c1"># order_items + customers</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;customer_state&quot;</span><span class="p">,</span> <span class="s2">&quot;customer_city&quot;</span><span class="p">],</span>       <span class="c1"># conformed: reachable from both facts</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    <span class="n">filters</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;customer_state&quot;</span><span class="p">,</span> <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;IN&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;(&#39;SP&#39;, &#39;RJ&#39;)&quot;</span><span class="p">}],</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="p">)</span>
+</span></code></pre></div>
+<p>Generates:
+<div class="language-sql highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">WITH</span><span class="w"> </span><span class="n">cte_order_items</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="k">SELECT</span><span class="w"> </span><span class="n">customer_state</span><span class="p">,</span><span class="w"> </span><span class="n">customer_city</span><span class="p">,</span><span class="w"> </span><span class="k">SUM</span><span class="p">(</span><span class="n">price</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">total_order_price</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="k">FROM</span><span class="w"> </span><span class="n">order_items</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="k">LEFT</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="n">orders</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="p">...</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="k">LEFT</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="n">customers</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="p">...</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span><span class="k">WHERE</span><span class="w"> </span><span class="n">customer_state</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;SP&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;RJ&#39;</span><span class="p">)</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span><span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="p">),</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="n">cte_customers</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">  </span><span class="k">SELECT</span><span class="w"> </span><span class="n">customer_state</span><span class="p">,</span><span class="w"> </span><span class="n">customer_city</span><span class="p">,</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="n">customer_id</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">total_customers</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">  </span><span class="k">FROM</span><span class="w"> </span><span class="n">customers</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">  </span><span class="k">WHERE</span><span class="w"> </span><span class="n">customer_state</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;SP&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;RJ&#39;</span><span class="p">)</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">  </span><span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="p">)</span>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="k">SELECT</span>
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">  </span><span class="k">COALESCE</span><span class="p">(</span><span class="n">cte_order_items</span><span class="p">.</span><span class="n">customer_state</span><span class="p">,</span><span class="w"> </span><span class="n">cte_customers</span><span class="p">.</span><span class="n">customer_state</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">customer_state</span><span class="p">,</span>
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="w">  </span><span class="k">COALESCE</span><span class="p">(</span><span class="n">cte_order_items</span><span class="p">.</span><span class="n">customer_city</span><span class="p">,</span><span class="w"> </span><span class="n">cte_customers</span><span class="p">.</span><span class="n">customer_city</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">customer_city</span><span class="p">,</span>
+</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="w">  </span><span class="n">cte_order_items</span><span class="p">.</span><span class="n">total_order_price</span><span class="p">,</span>
+</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="w">  </span><span class="n">cte_customers</span><span class="p">.</span><span class="n">total_customers</span>
+</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="k">FROM</span><span class="w"> </span><span class="n">cte_order_items</span>
+</span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a><span class="k">FULL</span><span class="w"> </span><span class="k">OUTER</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="n">cte_customers</span>
+</span><span id="__span-4-22"><a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="w">  </span><span class="k">ON</span><span class="w"> </span><span class="n">cte_order_items</span><span class="p">.</span><span class="n">customer_state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cte_customers</span><span class="p">.</span><span class="n">customer_state</span>
+</span><span id="__span-4-23"><a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a><span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="n">cte_order_items</span><span class="p">.</span><span class="n">customer_city</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cte_customers</span><span class="p">.</span><span class="n">customer_city</span><span class="p">;</span>
+</span></code></pre></div></p>
+<p>A non-conformed dimension — one that only some fact tables can reach — is <strong>rejected</strong>:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">sl</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>    <span class="n">measures</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;total_order_price&quot;</span><span class="p">,</span> <span class="s2">&quot;total_customers&quot;</span><span class="p">],</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;order_status&quot;</span><span class="p">],</span>  <span class="c1"># only reachable from order_items, NOT from customers</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="p">)</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="c1"># → raises NonConformedDimensionError</span>
+</span></code></pre></div>
+<hr />
+<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
+<p>Multi-fact queries require <strong>no API changes</strong>. The existing <code>SemanticLayer.query()</code> method automatically detects and handles them. Both initialization styles work identically:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">From model directory</label><label for="__tabbed_1_2">From explicit model list</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pysemantic.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">SemanticLayer</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">sl</span> <span class="o">=</span> <span class="n">SemanticLayer</span><span class="p">(</span><span class="n">model_path</span><span class="o">=</span><span class="s2">&quot;./models&quot;</span><span class="p">,</span> <span class="n">dialect</span><span class="o">=</span><span class="s2">&quot;postgres&quot;</span><span class="p">)</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="c1"># Single-fact query (unchanged behavior)</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="n">sql</span> <span class="o">=</span> <span class="n">sl</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>    <span class="n">measures</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;total_revenue&quot;</span><span class="p">,</span> <span class="s2">&quot;order_count&quot;</span><span class="p">],</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>    <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;customer_name&quot;</span><span class="p">],</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="p">)</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="c1"># Multi-fact query (automatic CTE generation)</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="n">sql</span> <span class="o">=</span> <span class="n">sl</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>    <span class="n">measures</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;total_revenue&quot;</span><span class="p">,</span> <span class="s2">&quot;total_clicks&quot;</span><span class="p">],</span>  <span class="c1"># from different fact tables</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>    <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;customer_name&quot;</span><span class="p">],</span>                 <span class="c1"># conformed dimension</span>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="p">)</span>
+</span></code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pysemantic.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">SemanticLayer</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pysemantic.modeling</span><span class="w"> </span><span class="kn">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">Dimension</span><span class="p">,</span> <span class="n">Measure</span><span class="p">,</span> <span class="n">Entity</span><span class="p">,</span> <span class="n">EntityType</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="n">orders</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;orders&quot;</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="s2">&quot;orders&quot;</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="s2">&quot;order_id&quot;</span><span class="p">,</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>    <span class="n">measures</span><span class="o">=</span><span class="p">[</span><span class="n">Measure</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;total_revenue&quot;</span><span class="p">,</span> <span class="n">agg</span><span class="o">=</span><span class="s2">&quot;sum&quot;</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="s2">&quot;revenue&quot;</span><span class="p">)],</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>    <span class="n">entities</span><span class="o">=</span><span class="p">[</span><span class="n">Entity</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;order&quot;</span><span class="p">,</span> <span class="n">entity_type</span><span class="o">=</span><span class="n">EntityType</span><span class="o">.</span><span class="n">PRIMARY</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="s2">&quot;order_id&quot;</span><span class="p">),</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>              <span class="n">Entity</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;customer&quot;</span><span class="p">,</span> <span class="n">entity_type</span><span class="o">=</span><span class="n">EntityType</span><span class="o">.</span><span class="n">FOREIGN</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="s2">&quot;customer_id&quot;</span><span class="p">)],</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="p">)</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="n">web_events</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;web_events&quot;</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="s2">&quot;web_events&quot;</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="s2">&quot;event_id&quot;</span><span class="p">,</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>    <span class="n">measures</span><span class="o">=</span><span class="p">[</span><span class="n">Measure</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;total_clicks&quot;</span><span class="p">,</span> <span class="n">agg</span><span class="o">=</span><span class="s2">&quot;count&quot;</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="s2">&quot;id&quot;</span><span class="p">)],</span>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>    <span class="n">entities</span><span class="o">=</span><span class="p">[</span><span class="n">Entity</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;event&quot;</span><span class="p">,</span> <span class="n">entity_type</span><span class="o">=</span><span class="n">EntityType</span><span class="o">.</span><span class="n">PRIMARY</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="s2">&quot;event_id&quot;</span><span class="p">),</span>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>              <span class="n">Entity</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;customer&quot;</span><span class="p">,</span> <span class="n">entity_type</span><span class="o">=</span><span class="n">EntityType</span><span class="o">.</span><span class="n">FOREIGN</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="s2">&quot;customer_id&quot;</span><span class="p">)],</span>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="p">)</span>
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="n">customers</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span>
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;customers&quot;</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="s2">&quot;customers&quot;</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="s2">&quot;customer_id&quot;</span><span class="p">,</span>
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>    <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="n">Dimension</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;customer_name&quot;</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">)],</span>
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>    <span class="n">entities</span><span class="o">=</span><span class="p">[</span><span class="n">Entity</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;customer&quot;</span><span class="p">,</span> <span class="n">entity_type</span><span class="o">=</span><span class="n">EntityType</span><span class="o">.</span><span class="n">PRIMARY</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="s2">&quot;customer_id&quot;</span><span class="p">)],</span>
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="p">)</span>
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a>
+</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="n">sl</span> <span class="o">=</span> <span class="n">SemanticLayer</span><span class="p">(</span><span class="n">models</span><span class="o">=</span><span class="p">[</span><span class="n">orders</span><span class="p">,</span> <span class="n">web_events</span><span class="p">,</span> <span class="n">customers</span><span class="p">],</span> <span class="n">dialect</span><span class="o">=</span><span class="s2">&quot;postgres&quot;</span><span class="p">)</span>
+</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a>
+</span><span id="__span-7-24"><a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a><span class="n">sql</span> <span class="o">=</span> <span class="n">sl</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+</span><span id="__span-7-25"><a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a>    <span class="n">measures</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;total_revenue&quot;</span><span class="p">,</span> <span class="s2">&quot;total_clicks&quot;</span><span class="p">],</span>
+</span><span id="__span-7-26"><a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a>    <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;customer_name&quot;</span><span class="p">],</span>
+</span><span id="__span-7-27"><a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a><span class="p">)</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<h3 id="with-filters">With Filters<a class="headerlink" href="#with-filters" title="Permanent link">&para;</a></h3>
+<p>In <strong>Conformed mode</strong> (dimensions present), all filter dimensions must also be conformed — reachable from every fact. Non-conformed filter dimensions raise <code>NonConformedDimensionError</code>.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Conformed dimension filter — pushed into BOTH CTEs</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">sql</span> <span class="o">=</span> <span class="n">sl</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>    <span class="n">measures</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;total_revenue&quot;</span><span class="p">,</span> <span class="s2">&quot;total_clicks&quot;</span><span class="p">],</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>    <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;customer_name&quot;</span><span class="p">],</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>    <span class="n">filters</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;customer_name&quot;</span><span class="p">,</span> <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;=&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;Alice&quot;</span><span class="p">}],</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="p">)</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="c1"># Non-conformed filter dimension — REJECTED</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="c1"># order_date is only reachable from orders, not web_events</span>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="n">sl</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>    <span class="n">measures</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;total_revenue&quot;</span><span class="p">,</span> <span class="s2">&quot;total_clicks&quot;</span><span class="p">],</span>
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>    <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;customer_name&quot;</span><span class="p">],</span>
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>    <span class="n">filters</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;order_date&quot;</span><span class="p">,</span> <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2024-01-01&quot;</span><span class="p">}],</span>
+</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="p">)</span>
+</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="c1"># → raises NonConformedDimensionError</span>
+</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>
+</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="c1"># Measure filter — applied to the outer query WHERE clause (always allowed)</span>
+</span><span id="__span-8-18"><a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="n">sql</span> <span class="o">=</span> <span class="n">sl</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+</span><span id="__span-8-19"><a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a>    <span class="n">measures</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;total_revenue&quot;</span><span class="p">,</span> <span class="s2">&quot;total_clicks&quot;</span><span class="p">],</span>
+</span><span id="__span-8-20"><a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a>    <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;customer_name&quot;</span><span class="p">],</span>
+</span><span id="__span-8-21"><a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a>    <span class="n">filters</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;total_revenue&quot;</span><span class="p">,</span> <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">}],</span>
+</span><span id="__span-8-22"><a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="grand-total-no-dimensions">Grand Total (No Dimensions)<a class="headerlink" href="#grand-total-no-dimensions" title="Permanent link">&para;</a></h3>
+<p>When no dimensions are specified, each CTE produces a single aggregated row and the final query uses <code>CROSS JOIN</code>. This is the <strong>only</strong> way to query unrelated fact tables that share no conformed dimensions.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">sql</span> <span class="o">=</span> <span class="n">sl</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">measures</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;total_revenue&quot;</span><span class="p">,</span> <span class="s2">&quot;total_clicks&quot;</span><span class="p">])</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="c1"># Produces:</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="c1"># WITH cte_orders AS (SELECT SUM(revenue) AS total_revenue FROM orders),</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1">#      cte_web_events AS (SELECT COUNT(id) AS total_clicks FROM web_events)</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="c1"># SELECT cte_orders.total_revenue, cte_web_events.total_clicks</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="c1"># FROM cte_orders CROSS JOIN cte_web_events;</span>
+</span></code></pre></div>
+<p>In Grand Total mode, non-conformed filter dimensions are <strong>allowed</strong> and routed only to the CTEs that can access them:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Grand Total with fact-specific filter — allowed</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="n">sql</span> <span class="o">=</span> <span class="n">sl</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>    <span class="n">measures</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;total_order_price&quot;</span><span class="p">,</span> <span class="s2">&quot;total_customers&quot;</span><span class="p">],</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>    <span class="n">dimensions</span><span class="o">=</span><span class="p">[],</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>    <span class="n">filters</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;order_status&quot;</span><span class="p">,</span> <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;=&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;delivered&quot;</span><span class="p">}],</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="p">)</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="c1"># → order_status filter pushed only to order_items CTE</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="c1">#   customers CTE produces unfiltered total</span>
+</span></code></pre></div>
+<h3 id="3-fact-tables">3+ Fact Tables<a class="headerlink" href="#3-fact-tables" title="Permanent link">&para;</a></h3>
+<p>Multi-fact queries support any number of fact tables. Subsequent CTEs are joined using <code>COALESCE</code>d keys:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">sql</span> <span class="o">=</span> <span class="n">sl</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>    <span class="n">measures</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;total_revenue&quot;</span><span class="p">,</span> <span class="s2">&quot;total_clicks&quot;</span><span class="p">,</span> <span class="s2">&quot;return_count&quot;</span><span class="p">],</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>    <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;customer_name&quot;</span><span class="p">],</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="p">)</span>
+</span></code></pre></div>
+<p>Produces chained <code>FULL OUTER JOIN</code>:</p>
+<div class="language-sql highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="k">FROM</span><span class="w"> </span><span class="n">cte_orders</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="k">FULL</span><span class="w"> </span><span class="k">OUTER</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="n">cte_web_events</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">  </span><span class="k">ON</span><span class="w"> </span><span class="n">cte_orders</span><span class="p">.</span><span class="n">__pk_customers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cte_web_events</span><span class="p">.</span><span class="n">__pk_customers</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="k">FULL</span><span class="w"> </span><span class="k">OUTER</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="n">cte_returns</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">  </span><span class="k">ON</span><span class="w"> </span><span class="k">COALESCE</span><span class="p">(</span><span class="n">cte_orders</span><span class="p">.</span><span class="n">__pk_customers</span><span class="p">,</span><span class="w"> </span><span class="n">cte_web_events</span><span class="p">.</span><span class="n">__pk_customers</span><span class="p">)</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="n">cte_returns</span><span class="p">.</span><span class="n">__pk_customers</span>
+</span></code></pre></div>
+<hr />
+<h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
+<h3 id="how-it-works-internally">How It Works Internally<a class="headerlink" href="#how-it-works-internally" title="Permanent link">&para;</a></h3>
+<p>The multi-fact feature extends the existing three-stage pipeline:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>QueryAST  ──▶  QueryPlanner  ──▶  SQLGenerator
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>                    │                    │
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>              ┌─────┴─────┐        ┌────┴────┐
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>              │ QueryPlan │        │ Flat SQL │   (single-fact)
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>              └───────────┘        └─────────┘
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>              ┌───────────────┐    ┌──────────┐
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>              │ MultiFactPlan │    │ CTE SQL  │   (multi-fact)
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>              └───────────────┘    └──────────┘
+</span></code></pre></div>
+<p><strong>Detection</strong>: The planner groups requested measures by their owning model. If all measures belong to one model, the existing <code>QueryPlan</code> path is used. If measures span 2+ models, the <code>MultiFactPlan</code> path activates — validating that all dimensions are conformed before generating SQL.</p>
+<h3 id="data-structures">Data Structures<a class="headerlink" href="#data-structures" title="Permanent link">&para;</a></h3>
+<h4 id="shareddimensionkey"><code>SharedDimensionKey</code><a class="headerlink" href="#shareddimensionkey" title="Permanent link">&para;</a></h4>
+<p>Represents a join key derived from a conformed dimension model's primary key. Used to join CTEs in the outer query when the dimension model is a dedicated dimension table (not also a fact in the query).</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dimension_model_name</code></td>
+<td>Name of the dimension model (e.g., <code>"customers"</code>)</td>
+</tr>
+<tr>
+<td><code>table_name</code></td>
+<td>Physical table name (e.g., <code>"customers"</code>)</td>
+</tr>
+<tr>
+<td><code>primary_key_column</code></td>
+<td>PK column name (e.g., <code>"id"</code>)</td>
+</tr>
+<tr>
+<td><code>alias</code></td>
+<td>Internal alias for CTE output (e.g., <code>"__pk_customers"</code>)</td>
+</tr>
+</tbody>
+</table>
+<h4 id="subplan"><code>SubPlan</code><a class="headerlink" href="#subplan" title="Permanent link">&para;</a></h4>
+<p>Represents a single CTE in the multi-fact query. One per fact table.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cte_alias</code></td>
+<td>CTE name (e.g., <code>"cte_orders"</code>)</td>
+</tr>
+<tr>
+<td><code>fact_model_name</code></td>
+<td>Semantic model name</td>
+</tr>
+<tr>
+<td><code>fact_table_name</code></td>
+<td>Physical table name</td>
+</tr>
+<tr>
+<td><code>measures</code></td>
+<td>Measures from this fact</td>
+</tr>
+<tr>
+<td><code>dimensions</code></td>
+<td>Conformed dimensions to include</td>
+</tr>
+<tr>
+<td><code>joins</code></td>
+<td>Join path from fact to dimension tables</td>
+</tr>
+<tr>
+<td><code>shared_keys</code></td>
+<td>Dimension PKs for outer-query joining</td>
+</tr>
+<tr>
+<td><code>filters</code></td>
+<td>Dimension filters pushed into this CTE</td>
+</tr>
+</tbody>
+</table>
+<h4 id="multifactplan"><code>MultiFactPlan</code><a class="headerlink" href="#multifactplan" title="Permanent link">&para;</a></h4>
+<p>The top-level plan containing all CTEs and outer-query metadata.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sub_plans</code></td>
+<td>List of <code>SubPlan</code> instances</td>
+</tr>
+<tr>
+<td><code>shared_dimensions</code></td>
+<td>Conformed dimensions in the final SELECT</td>
+</tr>
+<tr>
+<td><code>shared_keys</code></td>
+<td>PK-based join keys (dedicated dimension models)</td>
+</tr>
+<tr>
+<td><code>dimension_value_keys</code></td>
+<td>Dimension names used as join keys (when the dimension model also provides measures in this query)</td>
+</tr>
+<tr>
+<td><code>measure_filters</code></td>
+<td>Filters applied to the outer query</td>
+</tr>
+<tr>
+<td><code>order_by</code></td>
+<td>ORDER BY fields for the outer query</td>
+</tr>
+<tr>
+<td><code>limit</code></td>
+<td>LIMIT for the outer query</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="intelligent-filter-pushdown">Intelligent Filter Pushdown<a class="headerlink" href="#intelligent-filter-pushdown" title="Permanent link">&para;</a></h2>
+<p>PySemantic automatically routes every filter to the correct SQL location — no manual intervention needed. The routing strategy depends on the filter type and whether the query has dimensions.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>┌─────────────────────────────────────────────────────┐
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>│                 Filter Pushdown                     │
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>│                                                     │
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>│  Dimension filter ─┬─ Conformed ──▶ ALL CTEs WHERE  │
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>│                    └─ Non-conformed                  │
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>│                       ├─ Conformed mode ──▶ ERROR    │
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>│                       └─ Grand Total ──▶ Reachable   │
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>│                                          CTEs only   │
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>│                                                     │
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>│  Measure filter ──────────────▶ Outer query WHERE   │
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>└─────────────────────────────────────────────────────┘
+</span></code></pre></div>
+<h3 id="conformed-mode-dimensions-present">Conformed Mode (dimensions present)<a class="headerlink" href="#conformed-mode-dimensions-present" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Filter Type</th>
+<th>Routing</th>
+<th>Non-conformed?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Conformed dimension filter</strong></td>
+<td>Pushed into ALL CTEs' WHERE</td>
+<td>Must be conformed — <strong>error</strong> if not</td>
+</tr>
+<tr>
+<td><strong>Measure filter</strong></td>
+<td>Applied to outer query WHERE</td>
+<td>N/A</td>
+</tr>
+</tbody>
+</table>
+<p>All dimension filters must be conformed (reachable from every fact). This guarantees <strong>symmetric filtering</strong> — every CTE applies the same dimension constraints, so aggregates remain comparable across fact tables.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># customer_city is conformed (reachable from both order_items and customers)</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="c1"># → pushed into BOTH CTEs&#39; WHERE clause</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="n">sql</span> <span class="o">=</span> <span class="n">sl</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>    <span class="n">measures</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;total_order_price&quot;</span><span class="p">,</span> <span class="s2">&quot;total_customers&quot;</span><span class="p">],</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>    <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;customer_state&quot;</span><span class="p">],</span>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>    <span class="n">filters</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;customer_city&quot;</span><span class="p">,</span> <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;=&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;São Paulo&quot;</span><span class="p">}],</span>
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="p">)</span>
+</span></code></pre></div>
+<h3 id="grand-total-mode-no-dimensions">Grand Total Mode (no dimensions)<a class="headerlink" href="#grand-total-mode-no-dimensions" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Filter Type</th>
+<th>Routing</th>
+<th>Non-conformed?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Conformed dimension filter</strong></td>
+<td>Pushed into ALL CTEs' WHERE</td>
+<td>Allowed</td>
+</tr>
+<tr>
+<td><strong>Fact-specific dimension filter</strong></td>
+<td>Pushed into ONLY accessible CTEs</td>
+<td>Allowed</td>
+</tr>
+<tr>
+<td><strong>Measure filter</strong></td>
+<td>Applied to outer query WHERE</td>
+<td>N/A</td>
+</tr>
+</tbody>
+</table>
+<p>In Grand Total mode, non-conformed dimension filters are permitted. They're routed <strong>only to CTEs that can reach</strong> the dimension's model, producing asymmetric but semantically valid scalar aggregates.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># order_status is only reachable from order_items (via orders), NOT from customers</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="c1"># → filter pushed ONLY to cte_order_items; cte_customers runs unfiltered</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="n">sql</span> <span class="o">=</span> <span class="n">sl</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>    <span class="n">measures</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;total_order_price&quot;</span><span class="p">,</span> <span class="s2">&quot;total_customers&quot;</span><span class="p">],</span>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>    <span class="n">dimensions</span><span class="o">=</span><span class="p">[],</span>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>    <span class="n">filters</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;order_status&quot;</span><span class="p">,</span> <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;=&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;delivered&quot;</span><span class="p">}],</span>
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="p">)</span>
+</span></code></pre></div>
+<div class="language-sql highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="k">WITH</span><span class="w"> </span><span class="n">cte_order_items</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="w">  </span><span class="k">SELECT</span><span class="w"> </span><span class="k">SUM</span><span class="p">(</span><span class="n">order_items</span><span class="p">.</span><span class="n">price</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">total_order_price</span>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">  </span><span class="k">FROM</span><span class="w"> </span><span class="n">order_items</span>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">  </span><span class="k">LEFT</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="n">orders</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">order_items</span><span class="p">.</span><span class="n">order_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">orders</span><span class="p">.</span><span class="n">order_id</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">  </span><span class="k">WHERE</span><span class="w"> </span><span class="n">orders</span><span class="p">.</span><span class="n">order_status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;delivered&#39;</span><span class="w">   </span><span class="c1">-- ← filter pushed here only</span>
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="p">),</span>
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="n">cte_customers</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="w">  </span><span class="k">SELECT</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="n">customers</span><span class="p">.</span><span class="n">customer_id</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">total_customers</span>
+</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="w">  </span><span class="k">FROM</span><span class="w"> </span><span class="n">customers</span><span class="w">                            </span><span class="c1">-- ← no filter (can&#39;t reach orders)</span>
+</span><span id="__span-17-10"><a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="p">)</span>
+</span><span id="__span-17-11"><a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a><span class="k">SELECT</span>
+</span><span id="__span-17-12"><a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a><span class="w">  </span><span class="n">cte_order_items</span><span class="p">.</span><span class="n">total_order_price</span><span class="p">,</span>
+</span><span id="__span-17-13"><a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a><span class="w">  </span><span class="n">cte_customers</span><span class="p">.</span><span class="n">total_customers</span>
+</span><span id="__span-17-14"><a id="__codelineno-17-14" name="__codelineno-17-14" href="#__codelineno-17-14"></a><span class="k">FROM</span><span class="w"> </span><span class="n">cte_order_items</span>
+</span><span id="__span-17-15"><a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a><span class="k">CROSS</span><span class="w"> </span><span class="k">JOIN</span><span class="w"> </span><span class="n">cte_customers</span><span class="p">;</span>
+</span></code></pre></div>
+<h3 id="measure-filters">Measure Filters<a class="headerlink" href="#measure-filters" title="Permanent link">&para;</a></h3>
+<p>Measure filters are always applied to the <strong>outer query's WHERE</strong> clause (after CTE aggregation). Since CTEs already compute the aggregated values, these become simple column comparisons like <code>cte_orders.total_revenue &gt; 100</code>.</p>
+<hr />
+<h2 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">&para;</a></h2>
+<p>Multi-fact queries introduce three exception classes following the existing exception hierarchy:</p>
+<h3 id="nonconformeddimensionerror-inherits-from-multifactplanningerror"><code>NonConformedDimensionError</code> (inherits from <code>MultiFactPlanningError</code>)<a class="headerlink" href="#nonconformeddimensionerror-inherits-from-multifactplanningerror" title="Permanent link">&para;</a></h3>
+<p>The primary guard for multi-fact queries. Raised when a dimension (SELECT or filter) is <strong>not conformed</strong> — not reachable from every fact table in the query.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pysemantic.core.planner</span><span class="w"> </span><span class="kn">import</span> <span class="n">NonConformedDimensionError</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="k">try</span><span class="p">:</span>
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>    <span class="n">sql</span> <span class="o">=</span> <span class="n">sl</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>        <span class="n">measures</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;total_order_price&quot;</span><span class="p">,</span> <span class="s2">&quot;total_customers&quot;</span><span class="p">],</span>
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>        <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;order_status&quot;</span><span class="p">],</span>  <span class="c1"># only reachable from order_items, not customers</span>
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>    <span class="p">)</span>
+</span><span id="__span-18-8"><a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="k">except</span> <span class="n">NonConformedDimensionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+</span><span id="__span-18-9"><a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+</span><span id="__span-18-10"><a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a>    <span class="c1"># planning.multi_fact: Non-conformed Dimension requested</span>
+</span><span id="__span-18-11"><a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>    <span class="c1"># (details=&quot;Dimension &#39;order_status&#39; (model &#39;orders&#39;) is not reachable</span>
+</span><span id="__span-18-12"><a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a>    <span class="c1">#  from fact model &#39;customers&#39;. In multi-fact queries all dimensions must</span>
+</span><span id="__span-18-13"><a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a>    <span class="c1">#  be conformed — joinable from every fact table. For unrelated facts with</span>
+</span><span id="__span-18-14"><a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a>    <span class="c1">#  no shared dimensions, use a Grand Total query (no dimensions).&quot;)</span>
+</span></code></pre></div>
+<h3 id="multifactplanningerror-inherits-from-plannererror"><code>MultiFactPlanningError</code> (inherits from <code>PlannerError</code>)<a class="headerlink" href="#multifactplanningerror-inherits-from-plannererror" title="Permanent link">&para;</a></h3>
+<p>Raised for general multi-fact planning issues:</p>
+<ul>
+<li><strong>Invalid measure filter</strong>: A filter references a measure from a model that isn't a fact table in the query</li>
+<li><strong>Missing dimension/measure definitions</strong>: A referenced field doesn't exist in any model</li>
+<li><strong>Join path not found</strong>: A CTE can't join to a required dimension model</li>
+</ul>
+<h3 id="multifactgenerationerror-inherits-from-generatorerror"><code>MultiFactGenerationError</code> (inherits from <code>GeneratorError</code>)<a class="headerlink" href="#multifactgenerationerror-inherits-from-generatorerror" title="Permanent link">&para;</a></h3>
+<p>Raised during SQL generation when:</p>
+<ul>
+<li><strong>Empty sub-plans</strong>: MultiFactPlan has no CTEs to generate</li>
+<li><strong>Empty CTE SELECT</strong>: A CTE produces no output columns</li>
+<li><strong>Unresolvable dimension in CTE</strong>: A dimension can't be found in the CTE's accessible models</li>
+<li><strong>Unresolvable measure in outer query</strong>: A measure filter references a field not in any CTE</li>
+</ul>
+<hr />
+<h2 id="constraints-and-limitations">Constraints and Limitations<a class="headerlink" href="#constraints-and-limitations" title="Permanent link">&para;</a></h2>
+<h3 id="conformed-dimension-requirement">Conformed Dimension Requirement<a class="headerlink" href="#conformed-dimension-requirement" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p><strong>All dimensions must be conformed</strong> — reachable from every fact table in the query via the entity graph. Non-conformed dimensions in either SELECT or filter clauses raise <code>NonConformedDimensionError</code>.</p>
+</li>
+<li>
+<p><strong>Grand Total exception</strong>: the only way to query unrelated fact tables is with no SELECT dimensions, producing scalar aggregates via CROSS JOIN. Non-conformed filter dimensions are permitted in this mode.</p>
+</li>
+<li>
+<p><strong>Models providing both measures and dimensions</strong> are fully supported. When a model contributes both measures and conformed dimensions to a query, PySemantic uses dimension-value joins instead of PK-based joins to preserve correct aggregate semantics.</p>
+</li>
+</ol>
+<h3 id="dialect-support">Dialect Support<a class="headerlink" href="#dialect-support" title="Permanent link">&para;</a></h3>
+<p>PySemantic defaults to <strong>MySQL</strong> and supports all dialects via <a href="https://github.com/tobymao/sqlglot">SQLGlot</a>. Pass the <code>dialect</code> parameter when initializing <code>SemanticLayer</code>:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="n">sl</span> <span class="o">=</span> <span class="n">SemanticLayer</span><span class="p">(</span><span class="n">model_path</span><span class="o">=</span><span class="s2">&quot;./models&quot;</span><span class="p">,</span> <span class="n">dialect</span><span class="o">=</span><span class="s2">&quot;postgres&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Dialect</th>
+<th>Value</th>
+<th>Multi-Fact Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MySQL</td>
+<td><code>"mysql"</code> (default)</td>
+<td>2-fact supported (SQLGlot transpiles <code>FULL OUTER JOIN</code> to <code>LEFT + RIGHT + UNION ALL</code>). 3+ facts may need native <code>FULL OUTER JOIN</code>.</td>
+</tr>
+<tr>
+<td>PostgreSQL</td>
+<td><code>"postgres"</code></td>
+<td>Full support (native <code>FULL OUTER JOIN</code>)</td>
+</tr>
+<tr>
+<td>BigQuery</td>
+<td><code>"bigquery"</code></td>
+<td>Full support</td>
+</tr>
+<tr>
+<td>Snowflake</td>
+<td><code>"snowflake"</code></td>
+<td>Full support</td>
+</tr>
+<tr>
+<td>DuckDB</td>
+<td><code>"duckdb"</code></td>
+<td>Full support</td>
+</tr>
+<tr>
+<td>Databricks</td>
+<td><code>"databricks"</code></td>
+<td>Full support</td>
+</tr>
+<tr>
+<td>Redshift</td>
+<td><code>"redshift"</code></td>
+<td>Full support</td>
+</tr>
+<tr>
+<td>ClickHouse</td>
+<td><code>"clickhouse"</code></td>
+<td>Full support</td>
+</tr>
+<tr>
+<td>Trino / Presto</td>
+<td><code>"trino"</code> / <code>"presto"</code></td>
+<td>Full support</td>
+</tr>
+<tr>
+<td>SQLite</td>
+<td><code>"sqlite"</code></td>
+<td>Limited (<code>FULL OUTER JOIN</code> not natively supported)</td>
+</tr>
+<tr>
+<td>... and more</td>
+<td>See <a href="https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/__init__.py">SQLGlot dialect list</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="impact-on-existing-system">Impact on Existing System<a class="headerlink" href="#impact-on-existing-system" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>plan.py</code></td>
+<td>Added <code>SharedDimensionKey</code>, <code>SubPlan</code>, <code>MultiFactPlan</code> (with <code>dimension_value_keys</code> for dimension-value joins)</td>
+</tr>
+<tr>
+<td><code>planner.py</code></td>
+<td>Added <code>MultiFactPlanningError</code>, <code>NonConformedDimensionError</code>, <code>_plan_multi_fact()</code>, <code>_find_shared_dimension_owner()</code>, <code>_validate_dimension_conformity()</code>, <code>_is_reachable_from_all()</code>, <code>_can_reach()</code>. Conformed-only enforcement with Grand Total exception. Existing single-fact logic in <code>_plan_single_fact()</code> — <strong>no behavioral change</strong></td>
+</tr>
+<tr>
+<td><code>generator.py</code></td>
+<td>Added <code>MultiFactGenerationError</code>, <code>_build_multi_fact_sql()</code>, <code>_build_cte_body()</code>, <code>_build_cte_joins()</code> (supports both PK-based and dimension-value joins), <code>_build_measure_filter_where()</code>, <code>_find_owner_model_in_subplan()</code>. Existing single-fact methods <strong>unchanged</strong></td>
+</tr>
+<tr>
+<td><code>client.py</code></td>
+<td><strong>No changes</strong> — polymorphic flow handles both plan types</td>
+</tr>
+<tr>
+<td><code>exceptions.py</code></td>
+<td><strong>No changes</strong> — new exceptions inherit from existing base classes</td>
+</tr>
+<tr>
+<td><code>registry.py</code></td>
+<td><strong>No changes</strong></td>
+</tr>
+<tr>
+<td><code>ast.py</code></td>
+<td><strong>No changes</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The feature is <strong>fully backward-compatible</strong>. Single-fact queries follow the exact same code path as before.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../cli-studio/" class="md-footer__link md-footer__link--prev" aria-label="Previous: CLI &amp; Studio">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                CLI & Studio
+              </div>
+            </div>
+          </a>
+        
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 Nitesh Jangir
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/iamniteshjangir/semantic-py/" target="_blank" rel="noopener" title="GitHub" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="https://www.linkedin.com/in/nitesh-jangir/" target="_blank" rel="noopener" title="LinkedIn" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3M135.4 416H69V202.2h66.5V416zM102.2 96a38.5 38.5 0 1 1 0 77 38.5 38.5 0 1 1 0-77m282.1 320h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="https://pypi.org/project/pysemantic-layer/" target="_blank" rel="noopener" title="PyPI" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 444.7a20.4 20.4 0 1 1 0-40.7 20.4 20.4 0 1 1 0 40.7M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.6-183.4a20.4 20.4 0 1 1 0 40.8 20.4 20.4 0 1 1 0-40.8"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.top", "navigation.footer", "content.code.copy", "content.code.annotate", "toc.follow", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
