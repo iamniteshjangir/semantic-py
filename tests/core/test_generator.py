@@ -11,7 +11,7 @@ from pysemantic.core.plan import (
     SharedDimensionKey,
     SubPlan,
 )
-from pysemantic.modeling import Dimension, Measure
+from pysemantic.modeling import Measure
 
 
 @pytest.fixture
@@ -28,10 +28,16 @@ class TestGeneratorSingleFact:
             root_model_name="order_items",
             root_table_name="order_items",
             measures=[
-                next(m for m in registry_with_three_models.models["order_items"].measures if m.name == "total_order_price"),
+                next(
+                    m
+                    for m in registry_with_three_models.models["order_items"].measures
+                    if m.name == "total_order_price"
+                ),
             ],
             dimensions=[
-                next(d for d in registry_with_three_models.models["customers"].dimensions if d.name == "customer_state"),
+                next(
+                    d for d in registry_with_three_models.models["customers"].dimensions if d.name == "customer_state"
+                ),
             ],
             joins=[
                 JoinNode("order_items", "orders"),
@@ -73,7 +79,9 @@ class TestGeneratorSingleFact:
                 next(m for m in registry_with_three_models.models["customers"].measures if m.name == "total_customers"),
             ],
             dimensions=[
-                next(d for d in registry_with_three_models.models["customers"].dimensions if d.name == "customer_state"),
+                next(
+                    d for d in registry_with_three_models.models["customers"].dimensions if d.name == "customer_state"
+                ),
             ],
             joins=[],
             filters=[Filter(field="total_customers", operator=">", value="5")],
@@ -91,7 +99,9 @@ class TestGeneratorSingleFact:
                 next(m for m in registry_with_three_models.models["customers"].measures if m.name == "total_customers"),
             ],
             dimensions=[
-                next(d for d in registry_with_three_models.models["customers"].dimensions if d.name == "customer_state"),
+                next(
+                    d for d in registry_with_three_models.models["customers"].dimensions if d.name == "customer_state"
+                ),
             ],
             joins=[],
             filters=[],
@@ -122,7 +132,9 @@ class TestGeneratorSingleFact:
             root_table_name="customers",
             measures=[],
             dimensions=[
-                next(d for d in registry_with_three_models.models["customers"].dimensions if d.name == "customer_state"),
+                next(
+                    d for d in registry_with_three_models.models["customers"].dimensions if d.name == "customer_state"
+                ),
             ],
             joins=[],
             filters=[],
@@ -144,7 +156,11 @@ class TestGeneratorMultiFact:
             fact_model_name="order_items",
             fact_table_name="order_items",
             measures=[
-                next(m for m in registry_with_three_models.models["order_items"].measures if m.name == "total_order_price"),
+                next(
+                    m
+                    for m in registry_with_three_models.models["order_items"].measures
+                    if m.name == "total_order_price"
+                ),
             ],
             dimensions=[],
             joins=[],
@@ -186,7 +202,11 @@ class TestGeneratorMultiFact:
             fact_model_name="order_items",
             fact_table_name="order_items",
             measures=[
-                next(m for m in registry_with_three_models.models["order_items"].measures if m.name == "total_order_price"),
+                next(
+                    m
+                    for m in registry_with_three_models.models["order_items"].measures
+                    if m.name == "total_order_price"
+                ),
             ],
             dimensions=[dim],
             joins=[JoinNode("order_items", "orders"), JoinNode("orders", "customers")],
@@ -234,7 +254,11 @@ class TestGeneratorMultiFact:
             fact_model_name="order_items",
             fact_table_name="order_items",
             measures=[
-                next(m for m in registry_with_three_models.models["order_items"].measures if m.name == "total_order_price"),
+                next(
+                    m
+                    for m in registry_with_three_models.models["order_items"].measures
+                    if m.name == "total_order_price"
+                ),
             ],
             dimensions=[dim],
             joins=[JoinNode("order_items", "orders"), JoinNode("orders", "customers")],
@@ -272,7 +296,11 @@ class TestGeneratorMultiFact:
             fact_model_name="order_items",
             fact_table_name="order_items",
             measures=[
-                next(m for m in registry_with_three_models.models["order_items"].measures if m.name == "total_order_price"),
+                next(
+                    m
+                    for m in registry_with_three_models.models["order_items"].measures
+                    if m.name == "total_order_price"
+                ),
             ],
             dimensions=[],
             joins=[],
@@ -311,7 +339,11 @@ class TestGeneratorMultiFact:
             fact_model_name="order_items",
             fact_table_name="order_items",
             measures=[
-                next(m for m in registry_with_three_models.models["order_items"].measures if m.name == "total_order_price"),
+                next(
+                    m
+                    for m in registry_with_three_models.models["order_items"].measures
+                    if m.name == "total_order_price"
+                ),
             ],
             dimensions=[dim],
             joins=[JoinNode("order_items", "orders"), JoinNode("orders", "customers")],
@@ -361,7 +393,11 @@ class TestGeneratorMultiFact:
             fact_model_name="order_items",
             fact_table_name="order_items",
             measures=[
-                next(m for m in registry_with_three_models.models["order_items"].measures if m.name == "total_order_price"),
+                next(
+                    m
+                    for m in registry_with_three_models.models["order_items"].measures
+                    if m.name == "total_order_price"
+                ),
             ],
             dimensions=[],
             joins=[],

@@ -7,10 +7,9 @@ from pysemantic.core.plan import MultiFactPlan, QueryPlan
 from pysemantic.core.planner import (
     MultiFactPlanningError,
     NonConformedDimensionError,
-    QueryPlanningError,
     QueryPlanner,
+    QueryPlanningError,
 )
-
 
 # ── Single-Fact Planning ────────────────────────────────────────────
 
@@ -33,7 +32,9 @@ class TestPlannerSingleFact:
 
     def test_plan_single_fact_with_joins(self, registry_with_three_models):
         planner = QueryPlanner(registry_with_three_models)
-        ast = QueryAST(measures=["total_order_price"], dimensions=["customer_state"], filters=[], order_by=[], limit=None)
+        ast = QueryAST(
+            measures=["total_order_price"], dimensions=["customer_state"], filters=[], order_by=[], limit=None
+        )
         plan = planner.plan(ast)
         assert len(plan.joins) == 2
         join_targets = [j.target_model for j in plan.joins]

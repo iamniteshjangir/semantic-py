@@ -77,12 +77,19 @@ class TestQueryCommand:
             "    entities=[Entity(name='order', entity_type=EntityType.PRIMARY, column='order_id')],\n"
             ")\n"
         )
-        result = runner.invoke(app, [
-            "query", str(tmp_path),
-            "-m", "total_orders",
-            "-d", "order_status",
-            "--limit", "5",
-        ])
+        result = runner.invoke(
+            app,
+            [
+                "query",
+                str(tmp_path),
+                "-m",
+                "total_orders",
+                "-d",
+                "order_status",
+                "--limit",
+                "5",
+            ],
+        )
         assert result.exit_code == 0
         assert "SELECT" in result.stdout
 
@@ -116,12 +123,19 @@ class TestQueryCommand:
             "    entities=[Entity(name='order', entity_type=EntityType.PRIMARY, column='order_id')],\n"
             ")\n"
         )
-        result = runner.invoke(app, [
-            "query", str(tmp_path),
-            "-m", "total_orders",
-            "-d", "order_status",
-            "-f", "order_status = delivered",
-        ])
+        result = runner.invoke(
+            app,
+            [
+                "query",
+                str(tmp_path),
+                "-m",
+                "total_orders",
+                "-d",
+                "order_status",
+                "-f",
+                "order_status = delivered",
+            ],
+        )
         assert result.exit_code == 0
         assert "SELECT" in result.stdout
 
@@ -136,10 +150,15 @@ class TestQueryCommand:
             "    entities=[Entity(name='order', entity_type=EntityType.PRIMARY, column='order_id')],\n"
             ")\n"
         )
-        result = runner.invoke(app, [
-            "query", str(tmp_path),
-            "-m", "nonexistent_measure",
-        ])
+        result = runner.invoke(
+            app,
+            [
+                "query",
+                str(tmp_path),
+                "-m",
+                "nonexistent_measure",
+            ],
+        )
         assert result.exit_code == 1
         assert "Error" in result.stdout
 

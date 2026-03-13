@@ -307,9 +307,7 @@ class QueryPlanner:
                             dim_filters_per_fact[fact_name].append(filter_obj)
             else:
                 # Conformed mode: filter dimension must be conformed
-                self._validate_dimension_conformity(
-                    filter_obj.field, owner, fact_model_names
-                )
+                self._validate_dimension_conformity(filter_obj.field, owner, fact_model_names)
                 dim_filters_shared.append(filter_obj)
 
         # 4. Build shared keys & dimension-value keys
@@ -436,9 +434,7 @@ class QueryPlanner:
             details=f"Dimension '{dim_name}' is not defined in any model.",
         )
 
-    def _find_shared_dimension_owner(
-        self, dim_name: str, fact_model_names: set[str]
-    ) -> Model:
+    def _find_shared_dimension_owner(self, dim_name: str, fact_model_names: set[str]) -> Model:
         """Find which model owns a dimension for multi-fact queries.
 
         Prefer a model that is *not* a fact in this query (a dedicated

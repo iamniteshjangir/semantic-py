@@ -14,7 +14,7 @@ def client_from_models(order_items_model, orders_model, customers_model):
 
 class TestSemanticLayerInit:
     def test_init_requires_model_path_or_models(self):
-        with pytest.raises(ValueError, match="model_path.*models"):
+        with pytest.raises(ValueError, match=r"model_path.*models"):
             SemanticLayer()
 
     def test_init_rejects_both_model_path_and_models(self, order_items_model):

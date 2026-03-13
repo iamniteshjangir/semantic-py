@@ -1,6 +1,5 @@
 """Tests for plan dataclasses (core/plan.py)."""
 
-from pysemantic.core.ast import Filter
 from pysemantic.core.plan import JoinNode, MultiFactPlan, QueryPlan, SharedDimensionKey, SubPlan
 from pysemantic.modeling import Dimension, Measure
 

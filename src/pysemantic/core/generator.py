@@ -352,9 +352,7 @@ class SQLGenerator:
 
         # Shared keys (dimension model PKs for outer-query joining)
         for key in sub_plan.shared_keys:
-            select_items.append(
-                f"    {key.table_name}.{key.primary_key_column} AS {key.alias}"
-            )
+            select_items.append(f"    {key.table_name}.{key.primary_key_column} AS {key.alias}")
 
         # Dimension columns
         for dim in sub_plan.dimensions:
@@ -367,9 +365,7 @@ class SQLGenerator:
                 expr = measure.column
             else:
                 expr = f"{sub_plan.fact_table_name}.{measure.column}"
-            select_items.append(
-                f"    {self._format_agg(measure.agg, expr)} AS {measure.name}"
-            )
+            select_items.append(f"    {self._format_agg(measure.agg, expr)} AS {measure.name}")
 
         if not select_items:
             raise MultiFactGenerationError(
@@ -447,10 +443,7 @@ class SQLGenerator:
                 if i == 1:
                     left_ref = f"{first.cte_alias}.{key.alias}"
                 else:
-                    prev_refs = [
-                        f"{plan.sub_plans[j].cte_alias}.{key.alias}"
-                        for j in range(i)
-                    ]
+                    prev_refs = [f"{plan.sub_plans[j].cte_alias}.{key.alias}" for j in range(i)]
                     left_ref = f"COALESCE({', '.join(prev_refs)})"
                 on_conditions.append(f"{left_ref} = {sp.cte_alias}.{key.alias}")
 
@@ -459,17 +452,11 @@ class SQLGenerator:
                 if i == 1:
                     left_ref = f"{first.cte_alias}.{dim_name}"
                 else:
-                    prev_refs = [
-                        f"{plan.sub_plans[j].cte_alias}.{dim_name}"
-                        for j in range(i)
-                    ]
+                    prev_refs = [f"{plan.sub_plans[j].cte_alias}.{dim_name}" for j in range(i)]
                     left_ref = f"COALESCE({', '.join(prev_refs)})"
                 on_conditions.append(f"{left_ref} = {sp.cte_alias}.{dim_name}")
 
-            parts.append(
-                f"FULL OUTER JOIN {sp.cte_alias}\n"
-                f"    ON {' AND '.join(on_conditions)}"
-            )
+            parts.append(f"FULL OUTER JOIN {sp.cte_alias}\n    ON {' AND '.join(on_conditions)}")
 
         return "\n".join(parts)
 
@@ -491,9 +478,7 @@ class SQLGenerator:
                     details=f"Filter field '{filter_obj.field}' doesn't match any CTE measure.",
                 )
             safe_val = self._format_filter_value(filter_obj.operator, filter_obj.value)
-            conditions.append(
-                f"{cte_alias}.{filter_obj.field} {filter_obj.operator.upper()} {safe_val}"
-            )
+            conditions.append(f"{cte_alias}.{filter_obj.field} {filter_obj.operator.upper()} {safe_val}")
 
         return "WHERE " + " AND ".join(conditions)
 
@@ -535,10 +520,7 @@ class SQLGenerator:
 
         raise MultiFactGenerationError(
             summary="Dimension not found in CTE context",
-            details=(
-                f"Dimension '{dim_name}' not found in models accessible "
-                f"from CTE '{sub_plan.cte_alias}'."
-            ),
+            details=(f"Dimension '{dim_name}' not found in models accessible from CTE '{sub_plan.cte_alias}'."),
         )
 
     @staticmethod
@@ -594,10 +576,7 @@ class SQLGenerator:
 
         if op_lower in ("in", "not in"):
             if isinstance(value, (list, tuple)):
-                safe_vals = [
-                    "'{}'".format(str(v).replace("'", "''")) if isinstance(v, str) else str(v)
-                    for v in value
-                ]
+                safe_vals = ["'{}'".format(str(v).replace("'", "''")) if isinstance(v, str) else str(v) for v in value]
                 return f"({', '.join(safe_vals)})"
             elif isinstance(value, str):
                 return value
