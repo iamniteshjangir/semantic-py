@@ -11,7 +11,6 @@ packages = [
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.14"
-pytest = "^9.0.1"
 networkx = "^3.6.1"
 pyvis = "^0.3.2"
 sqlglot = "^28.10.1"
@@ -60,6 +59,16 @@ known-first-party = ["pysemantic"]
 [tool.ruff.format]
 docstring-code-format = true
 quote-style = "double"
+
+[tool.coverage.run]
+source = ["src/pysemantic"]
+branch = false
+omit = ["*/tests/*", "*/__pycache__/*", "*/ui/app.py"]
+
+[tool.coverage.report]
+fail_under = 85
+exclude_lines = ["pragma: no cover", "def __repr__", "raise NotImplementedError"]
+show_missing = true
 
 
 [build-system]

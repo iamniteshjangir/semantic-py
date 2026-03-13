@@ -20,6 +20,7 @@ hide:
 <div class="cta-buttons">
 <a href="getting-started/" class="cta-primary">&#x1F680; Get Started</a>
 <a href="cli-studio/" class="cta-secondary">&#x1F4BB; CLI &amp; Studio</a>
+<a href="multi-fact-queries/" class="cta-secondary">&#x1F4CA; Multi-Fact Queries</a>
 </div>
 
 </div>
@@ -36,12 +37,58 @@ Your browser does not support the video tag.
 
 Write a Python query — get production-ready SQL:
 
-=== "Python"
+=== "Python (model directory)"
 
     ```python
     from pysemantic.client import SemanticLayer
 
     sl = SemanticLayer(model_path="./models")
+
+    sql = sl.query(
+        measures=["total_order_price", "total_number_of_distinct_orders"],
+        dimensions=["customer_state", "customer_city"],
+        filters=[{"field": "customer_state", "operator": "IN", "value": "('SP', 'RJ')"}],
+        order_by=["total_order_price DESC"],
+        limit=10,
+    )
+    ```
+
+=== "Python (inline models)"
+
+    ```python
+    from pysemantic.client import SemanticLayer
+    from pysemantic.modeling import Model, Dimension, Measure, Entity, EntityType
+
+    order_items = Model(
+        name="order_items", table="order_items", primary_key="order_item_id",
+        measures=[
+            Measure(name="total_order_price", agg="sum", column="price"),
+            Measure(name="total_number_of_distinct_orders", agg="distinct_count", column="order_id"),
+        ],
+        entities=[
+            Entity(name="order_item", entity_type=EntityType.PRIMARY, column="order_item_id"),
+            Entity(name="order", entity_type=EntityType.FOREIGN, column="order_id"),
+        ],
+    )
+    orders = Model(
+        name="orders", table="orders", primary_key="order_id",
+        entities=[
+            Entity(name="order", entity_type=EntityType.PRIMARY, column="order_id"),
+            Entity(name="customer", entity_type=EntityType.FOREIGN, column="customer_id"),
+        ],
+    )
+    customers = Model(
+        name="customers", table="customers", primary_key="customer_id",
+        dimensions=[
+            Dimension(name="customer_city", column="customer_city", dtype="string"),
+            Dimension(name="customer_state", column="customer_state", dtype="string"),
+        ],
+        entities=[
+            Entity(name="customer", entity_type=EntityType.PRIMARY, column="customer_id"),
+        ],
+    )
+
+    sl = SemanticLayer(models=[order_items, orders, customers])
 
     sql = sl.query(
         measures=["total_order_price", "total_number_of_distinct_orders"],
@@ -116,9 +163,15 @@ Write a Python query — get production-ready SQL:
 </div>
 
 <div class="feature-card">
+<div class="feature-icon">🔀</div>
+<h3>Intelligent Filter Pushdown</h3>
+<p>Filters are automatically routed to the right CTE or outer query — conformed, fact-specific, or measure. No manual routing.</p>
+</div>
+
+<div class="feature-card">
 <div class="feature-icon">🌐</div>
 <h3>Multi-Dialect Support</h3>
-<p>MySQL, Postgres, and more via <a href="https://github.com/tobymao/sqlglot">SQLGlot</a>. One model, any database.</p>
+<p>MySQL (default), Postgres, BigQuery, Snowflake, DuckDB, and <a href="https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/__init__.py">20+ more</a> via <a href="https://github.com/tobymao/sqlglot">SQLGlot</a>. One model, any database.</p>
 </div>
 
 <div class="feature-card">
@@ -165,8 +218,8 @@ User Query (measures, dimensions, filters)
 |-------|---------------|
 | **AST** | Parses raw input into a structured, validated syntax tree |
 | **Registry** | Loads model files, validates them, builds the entity graph |
-| **Planner** | Resolves measures/dimensions to models, calculates join paths |
-| **Generator** | Translates the logical plan into dialect-specific SQL |
+| **Planner** | Resolves measures/dimensions to models, calculates join paths; detects single-fact vs multi-fact and enforces conformed dimensions |
+| **Generator** | Translates the logical plan into dialect-specific SQL (flat query or CTE-based for multi-fact) |
 
 <hr class="section-divider">
 

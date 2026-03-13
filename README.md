@@ -66,6 +66,56 @@ Joins, table references, WHERE vs HAVING -- all resolved automatically from your
 
 ---
 
+## Multi-Fact Queries
+
+Need measures from **multiple fact tables**? PySemantic automatically generates **CTE-based SQL** that avoids the [chasm trap](https://en.wikipedia.org/wiki/Entity%E2%80%93relationship_model#Chasm_trap) — a pitfall where naive joins between fact tables inflate aggregates due to row fan-out.
+
+![multi-fact query](static/terminal_gifs/multi-fact-queries.gif)
+
+```python
+sql = sl.query(
+    measures=["total_order_price", "total_customers"],  # order_items + customers
+    dimensions=["customer_state"],                       # conformed dimension
+    filters=[{"field": "customer_state", "operator": "IN", "value": "('SP', 'RJ')"}],
+)
+```
+
+```sql
+WITH cte_order_items AS (
+  SELECT
+    customers.customer_state AS customer_state,
+    SUM(order_items.price) AS total_order_price
+  FROM order_items
+  LEFT JOIN orders ON order_items.order_id = orders.order_id
+  LEFT JOIN customers ON orders.customer_id = customers.customer_id
+  WHERE customers.customer_state IN ('SP', 'RJ')
+  GROUP BY 1
+),
+cte_customers AS (
+  SELECT
+    customers.customer_state AS customer_state,
+    COUNT(customers.customer_id) AS total_customers
+  FROM customers
+  WHERE customers.customer_state IN ('SP', 'RJ')
+  GROUP BY 1
+)
+SELECT
+  COALESCE(cte_order_items.customer_state, cte_customers.customer_state) AS customer_state,
+  cte_order_items.total_order_price,
+  cte_customers.total_customers
+FROM cte_order_items
+FULL OUTER JOIN cte_customers
+  ON cte_order_items.customer_state = cte_customers.customer_state
+```
+
+**Key guarantees:**
+
+- **Conformed dimensions only** — all dimensions must be reachable from every fact table. Non-conformed dimensions raise `NonConformedDimensionError`.
+- **Intelligent Filter Pushdown** — conformed dimension filters are pushed into *every* CTE's `WHERE`; non-conformed filters (Grand Total only) are routed to *only* the CTEs that can reach them; measure filters are applied to the outer query. Zero manual routing.
+- **Grand Total exception** — querying with no dimensions produces scalar aggregates via `CROSS JOIN`, even across unrelated facts.
+
+---
+
 ## Why PySemantic?
 
 | | Feature | Description |
@@ -73,10 +123,12 @@ Joins, table references, WHERE vs HAVING -- all resolved automatically from your
 | **1** | **Single source of truth** | Define a metric once, use it everywhere |
 | **2** | **Automatic join resolution** | Declare entity relationships; PySemantic finds the path |
 | **3** | **SQL injection safe** | Structured filters with operator whitelisting and value escaping |
-| **4** | **Dialect support** | MySQL, Postgres, and more via [SQLGlot](https://github.com/tobymao/sqlglot) |
-| **5** | **Zero infrastructure** | Pure Python, no server required at definition time |
-| **6** | **Interactive Studio** | Explore your models, graph, and test queries in the browser |
-| **7** | **CLI powered by Typer** | Generate SQL and launch the Studio from the terminal |
+| **4** | **Multi-fact queries** | Combine measures from multiple tables with CTE-based SQL; no chasm trap |
+| **5** | **Intelligent Filter Pushdown** | Filters are automatically routed to the correct CTE or outer query — conformed, fact-specific, or measure |
+| **6** | **Dialect support** | MySQL, Postgres, and more via [SQLGlot](https://github.com/tobymao/sqlglot) |
+| **7** | **Zero infrastructure** | Pure Python, no server required at definition time |
+| **8** | **Interactive Studio** | Explore your models, graph, and test queries in the browser |
+| **9** | **CLI powered by Typer** | Generate SQL and launch the Studio from the terminal |
 
 ---
 
@@ -198,7 +250,7 @@ The Studio has three tabs:
 |-----|-------------|
 | **Entity Graph** | Interactive visualization of your model relationships. Click nodes to isolate, fullscreen mode, drag & zoom. |
 | **Data Dictionary** | Browse all registered models with their measures, dimensions, entities, and column mappings. |
-| **Query Playground** | Pick measures & dimensions from dropdowns, add filters, click "Generate SQL" and see the output. Invalid combos show your error protections in action. |
+| **Query Playground** | Pick measures & dimensions from dropdowns, add filters, click "Generate SQL" and see the output. **Multi-fact supported**: combining measures from multiple models produces CTE-based SQL; non-conformed dimensions surface clear errors in real-time. |
 
 ```bash
 # Custom port and light theme
@@ -307,6 +359,30 @@ Dimension filters go to `WHERE`; measure filters go to `HAVING` -- automatically
 
 ---
 
+## SQL Dialect
+
+PySemantic defaults to **MySQL** and supports all dialects provided by [SQLGlot](https://github.com/tobymao/sqlglot). Pass the `dialect` parameter when initializing `SemanticLayer`:
+
+```python
+sl = SemanticLayer(model_path="./models", dialect="postgres")
+```
+
+| Dialect | Value |
+|---------|-------|
+| MySQL | `"mysql"` (default) |
+| PostgreSQL | `"postgres"` |
+| BigQuery | `"bigquery"` |
+| Snowflake | `"snowflake"` |
+| DuckDB | `"duckdb"` |
+| Databricks | `"databricks"` |
+| Redshift | `"redshift"` |
+| ClickHouse | `"clickhouse"` |
+| Trino / Presto | `"trino"` / `"presto"` |
+| SQLite | `"sqlite"` |
+| ... and more | See [SQLGlot dialect list](https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/__init__.py) |
+
+---
+
 ## Architecture
 
 ```
@@ -329,8 +405,86 @@ User Query (measures, dimensions, filters)
 |-------|---------------|
 | **AST** | Parses raw input into a structured, validated syntax tree |
 | **Registry** | Loads model files, validates them, builds the entity graph |
-| **Planner** | Resolves measures/dimensions to models, calculates join paths |
-| **Generator** | Translates the logical plan into dialect-specific SQL |
+| **Planner** | Resolves measures/dimensions to models, calculates join paths; detects single-fact vs multi-fact and enforces conformed dimensions |
+| **Generator** | Translates the logical plan into dialect-specific SQL (flat query or CTE-based for multi-fact) |
+
+---
+
+## Initializing the Semantic Layer
+
+PySemantic supports two ways to load your models. Use whichever fits your workflow — the query API is identical either way.
+
+### Option 1: Model Directory (recommended for projects)
+
+Point to a directory of `.py` files. Each file exports a `Model` object. PySemantic auto-discovers and loads them all.
+
+```python
+from pysemantic.client import SemanticLayer
+
+sl = SemanticLayer(model_path="./models")
+```
+
+```
+models/
+├── order_items.py   # exports Model(name="order_items", ...)
+├── orders.py        # exports Model(name="orders", ...)
+├── customers.py     # exports Model(name="customers", ...)
+└── products.py      # exports Model(name="products", ...)
+```
+
+### Option 2: Explicit Model List (great for notebooks & tests)
+
+Define `Model` objects inline and pass them directly — no files needed.
+
+```python
+from pysemantic.client import SemanticLayer
+from pysemantic.modeling import Model, Dimension, Measure, Entity, EntityType
+
+customers = Model(
+    name="customers",
+    table="customers",
+    primary_key="customer_id",
+    dimensions=[
+        Dimension(name="customer_city", column="customer_city", dtype="string"),
+        Dimension(name="customer_state", column="customer_state", dtype="string"),
+    ],
+    measures=[
+        Measure(name="total_customers", agg="count", column="customer_id"),
+    ],
+    entities=[
+        Entity(name="customer", entity_type=EntityType.PRIMARY, column="customer_id"),
+    ],
+)
+
+orders = Model(
+    name="orders",
+    table="orders",
+    primary_key="order_id",
+    dimensions=[
+        Dimension(name="order_status", column="order_status", dtype="string"),
+    ],
+    measures=[
+        Measure(name="total_orders", agg="count", column="order_id"),
+    ],
+    entities=[
+        Entity(name="order", entity_type=EntityType.PRIMARY, column="order_id"),
+        Entity(name="customer", entity_type=EntityType.FOREIGN, column="customer_id"),
+    ],
+)
+
+sl = SemanticLayer(models=[customers, orders])
+```
+
+### Hot-Reload (for Jupyter / REPL)
+
+Switch models or reload from disk without restarting the kernel:
+
+```python
+sl.reload(model_path="./updated_models")   # reload from a different directory
+sl.reload(models=[customers, orders])       # reload with a new model list
+```
+
+> **Note:** You must provide either `model_path` or `models`, never both. Passing both raises a `ValueError`.
 
 ---
 
@@ -341,14 +495,24 @@ User Query (measures, dimensions, filters)
 ```python
 from pysemantic.client import SemanticLayer
 
-sl = SemanticLayer(model_path="./models")
+sl = SemanticLayer(model_path="./models")                     # from directory
+sl = SemanticLayer(models=[customers, orders])                # from model list
+sl = SemanticLayer(model_path="./models", dialect="postgres") # custom dialect
 ```
 
 | Method | Description |
 |--------|-------------|
 | `query(measures, dimensions, filters, order_by, limit)` | Generate a SQL query string |
-| `reload(model_path=None)` | Hot-reload models from disk (useful in notebooks) |
+| `reload(model_path=None, models=None)` | Hot-reload models from disk or a new list (useful in notebooks) |
 | `generate_graph(output_file)` | Export an interactive entity graph as HTML |
+
+### `SemanticLayer()` Constructor
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `model_path` | `str` | — | Path to the directory containing model `.py` files |
+| `models` | `list[Model]` | — | Explicit list of `Model` objects (alternative to `model_path`) |
+| `dialect` | `str` | `"mysql"` | SQL dialect — any [SQLGlot-supported dialect](https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/__init__.py) |
 
 ### `query()` Parameters
 

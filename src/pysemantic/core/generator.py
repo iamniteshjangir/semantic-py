@@ -1,6 +1,8 @@
+import re
+
 import sqlglot
 
-from pysemantic.core.plan import JoinNode, QueryPlan
+from pysemantic.core.plan import JoinNode, MultiFactPlan, QueryPlan, SubPlan
 from pysemantic.exceptions import GeneratorError, format_error
 from pysemantic.modeling import EntityType
 from pysemantic.registry import Registry
@@ -15,6 +17,19 @@ class SQLGenerationError(GeneratorError):
         super().__init__(format_error(self.DOMAIN, summary, **context))
 
 
+class MultiFactGenerationError(GeneratorError):
+    """Custom exception for multi-fact SQL generation errors.
+
+    Raised when CTE construction, cross-CTE joining, or outer query
+    assembly encounters an unresolvable condition.
+    """
+
+    DOMAIN = "generation.multi_fact"
+
+    def __init__(self, summary: str, **context):
+        super().__init__(format_error(self.DOMAIN, summary, **context))
+
+
 class SQLGenerator:
     """
     The Translator. Converts a logical QueryPlan into an executable SQL string.
@@ -22,21 +37,23 @@ class SQLGenerator:
     """
 
     def __init__(self, registry: Registry, dialect: str = "mysql"):
-        # We need the registry to look up Entity definitions for JOIN ON clauses
         self.registry = registry
         self.dialect = dialect
 
-    def generate(self, plan: QueryPlan) -> str:
+    def generate(self, plan: QueryPlan | MultiFactPlan) -> str:
         """
         Generate SQL for the specific target dialect.
-        """
-        # Build RAW ANSI SQL
-        ansi_sql = self._build_ansi_sql(plan)
 
-        # Transpile/Format using SQLGlot
+        Accepts both single-fact QueryPlan and multi-fact MultiFactPlan.
+        Multi-fact plans are rendered as WITH/CTE queries that pre-aggregate
+        each fact independently before joining, avoiding the chasm trap.
+        """
+        if isinstance(plan, MultiFactPlan):
+            ansi_sql = self._build_multi_fact_sql(plan)
+        else:
+            ansi_sql = self._build_ansi_sql(plan)
+
         try:
-            # If dialect is ansi this just formats the code nicely
-            # If dialect is different, it will transpile to that dialect
             transpiled = sqlglot.transpile(ansi_sql, read=None, write=self.dialect, pretty=True)[0]
             return transpiled
         except Exception as e:
@@ -47,33 +64,22 @@ class SQLGenerator:
                 error=str(e),
             ) from e
 
+    # ==================================================================
+    # Single-Fact SQL Generation
+    # ==================================================================
+
     def _build_ansi_sql(self, plan: QueryPlan) -> str:
         """
         Main entry point. Orchestrates the construction of the SQL query.
         """
-        # 1. Build SELECT clause (Dimensions + Measures)
         select_clause = self._build_select(plan)
-
-        # 2. Build FROM clause (Root Table)
         from_clause = self._build_from(plan)
-
-        # 3. Build JOIN clause (Traverse the graph edges)
         join_clause = self._build_joins(plan)
-
-        # 4. Build WHERE clause (Filters)
         where_clause = self._build_where(plan)
-
-        # 5. Build GROUP BY clause (Automatic indices)
         group_by_clause = self._build_group_by(plan)
-
-        # 6. Build HAVING clause
         having_clause = self._build_having(plan)
-
-        # 7. Build ORDER BY / LIMIT
         order_limit_clause = self._build_order_limit(plan)
 
-        # Combine logic
-        # Note: We use \n for readability of the generated SQL
         parts = [
             "SELECT",
             select_clause,
@@ -103,38 +109,23 @@ class SQLGenerator:
         """Constructs 'col AS name, SUM(col) AS name'."""
         select_items = []
 
-        # A. Dimensions
-        # Logic: {table}.{column} AS {name}
         for dim in plan.dimensions:
-            # We must resolve the table alias.
-            # If it's the root, use root table. If joined, use joined model name.
-            # For V1, we assume the table name in the DB matches the model's table attribute.
-
-            # Find which model owns this dimension to get the correct table alias
             owner_model = self._find_owner_model(dim.name, plan)
             table_alias = owner_model.table
-
             select_items.append(f"    {table_alias}.{dim.column} AS {dim.name}")
 
-        # B. Measures
-        # Logic: {agg}({table}.{column}) AS {name}
         for measure in plan.measures:
-            # Measures always come from Root in V1
             table_alias = plan.root_table_name
-
-            # Handle special case: count(1) or count(*) doesn't need a table alias
             if measure.column in ("1", "*"):
                 expr = f"{measure.column}"
             else:
                 expr = f"{table_alias}.{measure.column}"
-
             select_items.append(f"    {self._format_agg(measure.agg, expr)} AS {measure.name}")
 
         return ",\n".join(select_items)
 
     def _build_from(self, plan: QueryPlan) -> str:
         """Constructs 'FROM table_name'."""
-        # In V1, we don't alias the root table (or we alias it to its own name)
         return f"    {plan.root_table_name}"
 
     def _build_joins(self, plan: QueryPlan) -> str:
@@ -156,20 +147,11 @@ class SQLGenerator:
         source_model = self.registry.models[join.source_model]
         target_model = self.registry.models[join.target_model]
 
-        # 1. Identify the Entity linking them
-        # We look for a FOREIGN entity in Source that matches a PRIMARY in Target
-        # OR a FOREIGN entity in Target that matches a PRIMARY in Source
-
-        # Strategy: Scan source entities for a foreign key pointing to target
         join_key_source = None
         join_key_target = None
 
-        # Case A: Source -> Target (Source has the FK)
-        # e.g. Orders -> Customers (Orders has customer_id)
         for entity in source_model.entities or []:
             if entity.entity_type == EntityType.FOREIGN:
-                # Does this foreign entity match a Primary in the target?
-                # We check by name (Concept Match)
                 target_primary = next(
                     (
                         e
@@ -183,9 +165,6 @@ class SQLGenerator:
                     join_key_target = f"{target_model.table}.{target_primary.column}"
                     break
 
-        # Case B: Target -> Source (Target has the FK, but we are joining TO it)
-        # This happens in reverse joins. For V1, we stick to Case A logic primarily,
-        # but if not found, we check the reverse.
         if not join_key_source:
             for entity in target_model.entities or []:
                 if entity.entity_type == EntityType.FOREIGN:
@@ -219,45 +198,19 @@ class SQLGenerator:
 
         conditions = []
         for filter_obj in plan.filters:
-            # Determine field name (aliased)
-            # We assume the field is already fully qualified or is a simple column name
-            # For V1 generator we need to find the alias again?
-            # Or we can just trust the field name if it matches a known dimension/measure?
-            # plan.filters has dimensions/measures names.
-
-            # Simple resolution:
-            # If it's a measure, use the measure expression (agg) -> Wait, WHERE clause usually filters BEFORE agg?
-            # Actually, standard SQL: WHERE filters rows (dimensions), HAVING filters groups (measures).
-            # V1 Semantic Layer usually puts everything in WHERE or HAVING depending on type.
-            # But here `_build_where` is for WHERE clause.
-            # If a user filters on a metric, it should go to HAVING.
-            # For this security fix task, let's assume we handle Dimensions in WHERE.
-            # Measures in WHERE would be invalid SQL usually unless it's a derived table.
-
-            # For strict security, we map the operator and quote the value.
-
-            # Skip measures in WHERE clause, they belong in HAVING clause.
             try:
                 self.registry.get_model_by_metric(filter_obj.field)
-                continue  # It's a measure, skip
+                continue
             except Exception:
-                pass  # It's a dimension, continue
+                pass
 
-            # 1. Resolve Field
-            # We need the table alias.
-            # Re-using logic from _build_select implies we can find the owner.
             try:
                 owner_model = self._find_owner_model(filter_obj.field, plan)
                 physcical_column = self._find_column_name(owner_model, filter_obj.field)
                 col_expr = f"{owner_model.table}.{physcical_column}"
             except SQLGenerationError:
-                # If not found (maybe it's a measure?), for now we might skip or fail.
-                # But sticking to security scope: even if we fail to resolve Alias, strictly quoting is key.
-                # If we can't find alias, we might fallback to just the field name (risky if ambiguous) or fail.
-                # Let's fallback to safely checking if it looks like a valid identifier.
                 col_expr = filter_obj.field
 
-            # format the value and append
             safe_val = self._format_filter_value(filter_obj.operator, filter_obj.value)
             conditions.append(f"{col_expr} {filter_obj.operator.upper()} {safe_val}")
 
@@ -270,14 +223,11 @@ class SQLGenerator:
         conditions = []
         for filter_obj in plan.filters:
             try:
-                # Fetch the actual model and measure object
                 measure_model = self.registry.get_model_by_metric(filter_obj.field)
-                # Find the specific measure definition
                 measure_obj = next(m for m in measure_model.measures if m.name == filter_obj.field)
             except Exception:
                 continue
 
-            # Reconstruct the physical SQL aggregate (e.g., SUM(price))
             table_alias = measure_model.table
             if measure_obj.column in ("1", "*"):
                 expr = f"{measure_obj.column}"
@@ -305,15 +255,8 @@ class SQLGenerator:
         """Handles ORDER BY and LIMIT with validation."""
         parts = []
         if plan.order_by:
-            # Validate order_by fields (Basic SQL Injection check)
-            # Ensure they match [a-zA-Z0-9_]+ and optionally " DESC" or " ASC"
-            # Or better, check if they are in the selected columns list.
-
             safe_orders = []
             for item in plan.order_by:
-                # Simple whitelist regex
-                import re
-
                 if not re.match(r"^[\w\.]+(\s+(ASC|DESC))?$", item, re.IGNORECASE):
                     raise SQLGenerationError(f"Invalid ORDER BY clause: {item}")
                 safe_orders.append(item)
@@ -327,19 +270,245 @@ class SQLGenerator:
 
         return "\n".join(parts)
 
+    # ==================================================================
+    # Multi-Fact SQL Generation (CTE-based)
+    # ==================================================================
+
+    def _build_multi_fact_sql(self, plan: MultiFactPlan) -> str:
+        """Builds a WITH/CTE query for multi-fact plans.
+
+        Structure:
+            WITH cte_fact_a AS (pre-aggregated fact A),
+                 cte_fact_b AS (pre-aggregated fact B)
+            SELECT COALESCE'd dimensions, measures from each CTE
+            FROM cte_fact_a
+            FULL OUTER JOIN cte_fact_b ON shared keys
+            WHERE measure filters
+            ORDER BY / LIMIT
+        """
+        if not plan.sub_plans:
+            raise MultiFactGenerationError(
+                summary="MultiFactPlan has no sub-plans",
+                details="At least two sub-plans are required for a multi-fact query.",
+            )
+
+        # 1. Build CTE definitions
+        cte_parts = []
+        for sub_plan in plan.sub_plans:
+            cte_body = self._build_cte_body(sub_plan)
+            cte_parts.append(f"{sub_plan.cte_alias} AS (\n{cte_body}\n)")
+
+        with_clause = "WITH " + ",\n".join(cte_parts)
+
+        # 2. Build outer SELECT
+        select_items = []
+
+        for dim in plan.shared_dimensions:
+            coalesce_refs = [f"{sp.cte_alias}.{dim.name}" for sp in plan.sub_plans]
+            select_items.append(f"    COALESCE({', '.join(coalesce_refs)}) AS {dim.name}")
+
+        for sub_plan in plan.sub_plans:
+            for measure in sub_plan.measures:
+                select_items.append(f"    {sub_plan.cte_alias}.{measure.name}")
+
+        if not select_items:
+            raise MultiFactGenerationError(
+                summary="Empty SELECT clause",
+                details="Multi-fact query must produce at least one output column.",
+            )
+
+        select_clause = "SELECT\n" + ",\n".join(select_items)
+
+        # 3. Build FROM + FULL OUTER JOIN between CTEs
+        from_clause = self._build_cte_joins(plan)
+
+        # 4. Build outer WHERE for measure filters
+        where_clause = self._build_measure_filter_where(plan)
+
+        # 5. Build ORDER BY / LIMIT
+        order_limit = self._build_order_limit_raw(plan.order_by, plan.limit)
+
+        # Assemble
+        parts = [with_clause, select_clause, from_clause]
+
+        if where_clause:
+            parts.append(where_clause)
+
+        if order_limit:
+            parts.append(order_limit)
+
+        return "\n".join(parts) + ";"
+
+    def _build_cte_body(self, sub_plan: SubPlan) -> str:
+        """Build the inner SQL for a single CTE (sub-plan).
+
+        SELECT shared_keys, dimensions, aggregated measures
+        FROM fact_table
+        LEFT JOIN dimension_tables
+        WHERE dimension filters
+        GROUP BY non-aggregate columns
+        """
+        select_items = []
+
+        # Shared keys (dimension model PKs for outer-query joining)
+        for key in sub_plan.shared_keys:
+            select_items.append(
+                f"    {key.table_name}.{key.primary_key_column} AS {key.alias}"
+            )
+
+        # Dimension columns
+        for dim in sub_plan.dimensions:
+            owner = self._find_owner_model_in_subplan(dim.name, sub_plan)
+            select_items.append(f"    {owner.table}.{dim.column} AS {dim.name}")
+
+        # Aggregated measures
+        for measure in sub_plan.measures:
+            if measure.column in ("1", "*"):
+                expr = measure.column
+            else:
+                expr = f"{sub_plan.fact_table_name}.{measure.column}"
+            select_items.append(
+                f"    {self._format_agg(measure.agg, expr)} AS {measure.name}"
+            )
+
+        if not select_items:
+            raise MultiFactGenerationError(
+                summary="Empty CTE SELECT",
+                details=f"CTE '{sub_plan.cte_alias}' produces no columns.",
+            )
+
+        # FROM
+        from_part = f"    {sub_plan.fact_table_name}"
+
+        # JOINs (fact → dimension tables)
+        join_parts = []
+        for join_node in sub_plan.joins:
+            join_parts.append(self._resolve_join_sql(join_node))
+
+        # WHERE (dimension filters pushed into the CTE)
+        where_conditions = []
+        for filter_obj in sub_plan.filters:
+            try:
+                owner = self._find_owner_model_in_subplan(filter_obj.field, sub_plan)
+                physical_col = self._find_column_name(owner, filter_obj.field)
+                col_expr = f"{owner.table}.{physical_col}"
+            except (SQLGenerationError, MultiFactGenerationError):
+                col_expr = filter_obj.field
+
+            safe_val = self._format_filter_value(filter_obj.operator, filter_obj.value)
+            where_conditions.append(f"{col_expr} {filter_obj.operator.upper()} {safe_val}")
+
+        # GROUP BY (indices covering shared_keys + dimensions)
+        group_count = len(sub_plan.shared_keys) + len(sub_plan.dimensions)
+
+        # Assemble
+        parts = ["SELECT", ",\n".join(select_items), "FROM", from_part]
+
+        if join_parts:
+            parts.append("\n".join(join_parts))
+
+        if where_conditions:
+            parts.append("WHERE " + " AND ".join(where_conditions))
+
+        if group_count > 0 and sub_plan.measures:
+            indices = [str(i + 1) for i in range(group_count)]
+            parts.append("GROUP BY " + ", ".join(indices))
+
+        return "\n".join(parts)
+
+    def _build_cte_joins(self, plan: MultiFactPlan) -> str:
+        """Build FROM + FULL OUTER JOIN (or CROSS JOIN) between CTEs.
+
+        Join conditions combine two strategies:
+        - PK-based keys (``shared_keys``) for pure dimension models
+        - Dimension-value keys (``dimension_value_keys``) for dual-role
+          models whose PK must stay out of GROUP BY
+        """
+        first = plan.sub_plans[0]
+
+        if len(plan.sub_plans) == 1:
+            return f"FROM {first.cte_alias}"
+
+        has_join_keys = bool(plan.shared_keys) or bool(plan.dimension_value_keys)
+
+        if not has_join_keys:
+            parts = [f"FROM {first.cte_alias}"]
+            for sp in plan.sub_plans[1:]:
+                parts.append(f"CROSS JOIN {sp.cte_alias}")
+            return "\n".join(parts)
+
+        # FULL OUTER JOIN with COALESCE'd keys for 3+ CTEs
+        parts = [f"FROM {first.cte_alias}"]
+        for i, sp in enumerate(plan.sub_plans[1:], start=1):
+            on_conditions = []
+
+            # PK-based conditions (pure dimension models)
+            for key in plan.shared_keys:
+                if i == 1:
+                    left_ref = f"{first.cte_alias}.{key.alias}"
+                else:
+                    prev_refs = [
+                        f"{plan.sub_plans[j].cte_alias}.{key.alias}"
+                        for j in range(i)
+                    ]
+                    left_ref = f"COALESCE({', '.join(prev_refs)})"
+                on_conditions.append(f"{left_ref} = {sp.cte_alias}.{key.alias}")
+
+            # Dimension-value conditions (dual-role models)
+            for dim_name in plan.dimension_value_keys:
+                if i == 1:
+                    left_ref = f"{first.cte_alias}.{dim_name}"
+                else:
+                    prev_refs = [
+                        f"{plan.sub_plans[j].cte_alias}.{dim_name}"
+                        for j in range(i)
+                    ]
+                    left_ref = f"COALESCE({', '.join(prev_refs)})"
+                on_conditions.append(f"{left_ref} = {sp.cte_alias}.{dim_name}")
+
+            parts.append(
+                f"FULL OUTER JOIN {sp.cte_alias}\n"
+                f"    ON {' AND '.join(on_conditions)}"
+            )
+
+        return "\n".join(parts)
+
+    def _build_measure_filter_where(self, plan: MultiFactPlan) -> str:
+        """Build WHERE clause for measure filters on the outer query.
+
+        Since CTEs already compute aggregates, measure filters become
+        simple column comparisons on the outer query.
+        """
+        if not plan.measure_filters:
+            return ""
+
+        conditions = []
+        for filter_obj in plan.measure_filters:
+            cte_alias = self._find_measure_cte(filter_obj.field, plan)
+            if not cte_alias:
+                raise MultiFactGenerationError(
+                    summary="Measure not found in any CTE",
+                    details=f"Filter field '{filter_obj.field}' doesn't match any CTE measure.",
+                )
+            safe_val = self._format_filter_value(filter_obj.operator, filter_obj.value)
+            conditions.append(
+                f"{cte_alias}.{filter_obj.field} {filter_obj.operator.upper()} {safe_val}"
+            )
+
+        return "WHERE " + " AND ".join(conditions)
+
+    # ==================================================================
+    # Shared helpers
+    # ==================================================================
+
     def _find_owner_model(self, dim_name: str, plan: QueryPlan):
-        """
-        Helper: Locates the model object for a given dimension name.
-        Uses the registry.
-        """
-        # 1. Check Root
+        """Locates the model object for a given dimension name (single-fact)."""
         root = self.registry.models[plan.root_model_name]
 
         for d in root.dimensions:
             if d.name == dim_name:
                 return root
 
-        # 2. Check Joined Models
         for join in plan.joins:
             model = self.registry.models[join.target_model]
             for d in model.dimensions:
@@ -347,8 +516,38 @@ class SQLGenerator:
                     return model
 
         raise SQLGenerationError(
-            summary="Dimension lost during planning", details=f"Dimension '{dim_name}' not found in any plan model."
+            summary="Dimension lost during planning",
+            details=f"Dimension '{dim_name}' not found in any plan model.",
         )
+
+    def _find_owner_model_in_subplan(self, dim_name: str, sub_plan: SubPlan):
+        """Locates the model object for a dimension within a SubPlan's scope."""
+        fact_model = self.registry.models[sub_plan.fact_model_name]
+        for d in fact_model.dimensions:
+            if d.name == dim_name:
+                return fact_model
+
+        for join_node in sub_plan.joins:
+            model = self.registry.models[join_node.target_model]
+            for d in model.dimensions:
+                if d.name == dim_name:
+                    return model
+
+        raise MultiFactGenerationError(
+            summary="Dimension not found in CTE context",
+            details=(
+                f"Dimension '{dim_name}' not found in models accessible "
+                f"from CTE '{sub_plan.cte_alias}'."
+            ),
+        )
+
+    @staticmethod
+    def _find_measure_cte(measure_name: str, plan: MultiFactPlan) -> str | None:
+        """Find which CTE alias owns a given measure."""
+        for sp in plan.sub_plans:
+            if any(m.name == measure_name for m in sp.measures):
+                return sp.cte_alias
+        return None
 
     @staticmethod
     def _format_agg(agg: str, expr: str) -> str:
@@ -362,13 +561,30 @@ class SQLGenerator:
         for d in model.dimensions:
             if d.name == dim_name:
                 return d.column
-        return dim_name  # Should not happen if _find_owner_model succeeded
+        return dim_name
 
-    def _format_filter_value(self, operator: str, value: any) -> str:
+    def _build_order_limit_raw(self, order_by: list[str], limit: int | None) -> str:
+        """Shared ORDER BY / LIMIT builder for any plan type."""
+        parts = []
+        if order_by:
+            safe_orders = []
+            for item in order_by:
+                if not re.match(r"^[\w\.]+(\s+(ASC|DESC))?$", item, re.IGNORECASE):
+                    raise SQLGenerationError(f"Invalid ORDER BY clause: {item}")
+                safe_orders.append(item)
+            parts.append("ORDER BY " + ", ".join(safe_orders))
+
+        if limit is not None:
+            if not isinstance(limit, int):
+                raise SQLGenerationError("LIMIT must be an integer.")
+            parts.append(f"LIMIT {limit}")
+
+        return "\n".join(parts)
+
+    def _format_filter_value(self, operator: str, value) -> str:
         """Intelligently formats and escapes values based on the SQL operator."""
         op_lower = operator.lower()
 
-        # 1. Handle IS / IS NOT
         if op_lower in ("is", "is not"):
             if value is None or str(value).upper() == "NULL":
                 return "NULL"
@@ -376,25 +592,24 @@ class SQLGenerator:
                 return str(value).upper()
             return f"'{value}'"
 
-        # 2. Handle IN / NOT IN
         if op_lower in ("in", "not in"):
             if isinstance(value, (list, tuple)):
-                safe_vals = ["'{}'".format(str(v).replace("'", "''")) if isinstance(v, str) else str(v) for v in value]
+                safe_vals = [
+                    "'{}'".format(str(v).replace("'", "''")) if isinstance(v, str) else str(v)
+                    for v in value
+                ]
                 return f"({', '.join(safe_vals)})"
             elif isinstance(value, str):
-                return value  # Trust strings already formatted like "('A', 'B')"
+                return value
 
-        # 3. Handle NULLs for standard operators
         if value is None or str(value).upper() == "NULL":
             return "NULL"
 
-        # 4. Handle Scalars
         if isinstance(value, bool):
             return "TRUE" if value else "FALSE"
         if isinstance(value, (int, float)):
             return str(value)
 
-        # 5. Detect numeric strings before quoting
         str_val = str(value)
         try:
             float(str_val)
@@ -402,6 +617,5 @@ class SQLGenerator:
         except ValueError:
             pass
 
-        # 6. Default string escaping (for =, !=, LIKE, ILIKE, >, <, etc.)
         escaped_val = str_val.replace("'", "''")
         return f"'{escaped_val}'"

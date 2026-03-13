@@ -117,7 +117,7 @@ class TestMeasureAggregationValidation:
 
     def test_valid_aggregation_functions(self):
         """Test that valid aggregation functions are accepted."""
-        valid_aggs = ["sum", "avg", "mean", "count", "count_distinct", "min", "max"]
+        valid_aggs = ["sum", "avg", "mean", "count", "distinct_count", "min", "max"]
 
         for agg in valid_aggs:
             entity = _entity("customer", EntityType.PRIMARY)

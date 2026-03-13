@@ -83,5 +83,6 @@ nav:
   - Home: index.md
   - Getting Started: getting-started.md
   - CLI & Studio: cli-studio.md
+  - Multi-Fact Queries: multi-fact-queries.md
 
 copyright: Copyright &copy; 2026 Nitesh Jangir
