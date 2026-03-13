@@ -121,6 +121,7 @@ The Studio provides three tabs for exploring your data layer:
     - Pick measures and dimensions from dropdowns
     - Add filters with point-and-click
     - Click **"Generate SQL"** and see the result
+    - **Multi-fact supported:** combining measures from multiple models (e.g. order_items + customers) produces CTE-based SQL; dimensions must be [conformed](multi-fact-queries.md#conformed-dimensions) or the query runs as a Grand Total (no dimensions)
     - Invalid combinations surface your error protections in real-time
 
 ---
@@ -173,6 +174,20 @@ Open the HTML file in any browser — it's fully interactive with drag, zoom, no
 
 ---
 
+## SQL Dialect
+
+The CLI generates SQL using the **MySQL** dialect by default (matching the `SemanticLayer` default). PySemantic supports all [SQLGlot dialects](https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/__init__.py) — MySQL, PostgreSQL, BigQuery, Snowflake, DuckDB, Databricks, Redshift, ClickHouse, Trino, SQLite, and more.
+
+To use a different dialect, initialize `SemanticLayer` programmatically with the `dialect` parameter:
+
+```python
+sl = SemanticLayer(model_path="./models", dialect="postgres")
+```
+
+See [Getting Started — Supported Dialects](getting-started.md#supported-dialects) for the full list.
+
+---
+
 <div style="text-align: center; padding: 1rem 0;" markdown>
-**New to PySemantic?** Start with the basics →  [Getting Started](getting-started.md)
+**New to PySemantic?** [Getting Started](getting-started.md) · **Multi-model metrics?** [Multi-Fact Queries](multi-fact-queries.md)
 </div>
