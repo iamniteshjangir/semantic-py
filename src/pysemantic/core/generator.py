@@ -1,4 +1,5 @@
 import re
+from typing import Any
 
 import sqlglot
 
@@ -563,7 +564,7 @@ class SQLGenerator:
 
         return "\n".join(parts)
 
-    def _format_filter_value(self, operator: str, value) -> str:
+    def _format_filter_value(self, operator: str, value: Any) -> str:
         """Intelligently formats and escapes values based on the SQL operator."""
         op_lower = operator.lower()
 
